@@ -67,46 +67,44 @@ class RegisterController extends BaseController
      * Allow login with email or phone
      */
     public function login(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'login' => ['required', 'string'], // email or phone
-            'password' => ['required', 'string'],
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'email' => ['required', 'email'],
+        'password' => ['required', 'string'],
+    ]);
 
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
-        }
-
-        $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-
-        $credentials = [
-            $loginField => $request->login,
-            'password' => $request->password,
-        ];
-
-        if (!Auth::attempt($credentials)) {
-            return $this->sendError('Unauthorised.', ['error' => ['Invalid login credentials.']]);
-        }
-
-        /** @var \App\Models\User $user */
-        $user = Auth::user()->load('role');
-
-        $token = $user->createToken('Kukamoto')->plainTextToken;
-
-        $success = [
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->role?->slug,
-                'role_name' => $user->role?->name,
-            ],
-        ];
-
-        return $this->sendResponse($success, 'User login successfully.');
+    if ($validator->fails()) {
+        return $this->sendError('Validation Error.', $validator->errors());
     }
+
+    if (!Auth::attempt([
+        'email' => $request->email,
+        'password' => $request->password,
+    ])) {
+        return $this->sendError('Unauthorised.', [
+            'error' => ['Invalid email or password.']
+        ]);
+    }
+
+    /** @var \App\Models\User $user */
+    $user = Auth::user()->load('role');
+
+    $token = $user->createToken('Kukamoto')->plainTextToken;
+
+    $success = [
+        'token' => $token,
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'role' => $user->role?->slug,
+            'role_name' => $user->role?->name,
+        ],
+    ];
+
+    return $this->sendResponse($success, 'User login successfully.');
+}
 
     /**
      * Current authenticated user
