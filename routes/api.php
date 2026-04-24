@@ -8,6 +8,7 @@ use App\Http\Controllers\API\HomeSectionThreeController;
 use App\Http\Controllers\API\HomeSectionFourController;
 use App\Http\Controllers\API\HomeSectionFiveController;
 use App\Http\Controllers\API\RestaurantMenuItemController;
+use App\Http\Controllers\API\RestaurantBookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,9 @@ Route::get('restaurant-menu-items', [RestaurantMenuItemController::class, 'index
 Route::get('restaurant-menu-items/active', [RestaurantMenuItemController::class, 'active']);
 Route::get('restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'show']);
 
+// Restaurant Bookings (customer creates booking/order here)
+Route::post('restaurant-bookings', [RestaurantBookingController::class, 'store']);
+
 /*
 |--------------------------------------------------------------------------
 | Protected Routes
@@ -80,4 +84,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('restaurant-menu-items', [RestaurantMenuItemController::class, 'store']);
     Route::post('restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'update']);
     Route::delete('restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'destroy']);
+
+    // Restaurant Bookings (admin/authorized access)
+    Route::get('restaurant-bookings', [RestaurantBookingController::class, 'index']);
+    Route::get('restaurant-bookings/{id}', [RestaurantBookingController::class, 'show']);
+    Route::post('restaurant-bookings/{id}', [RestaurantBookingController::class, 'update']);
+    Route::delete('restaurant-bookings/{id}', [RestaurantBookingController::class, 'destroy']);
 });
