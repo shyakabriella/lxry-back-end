@@ -11,43 +11,14 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\HomeAPI\HomePageSectionTwoController;
 
 
-// Home Page Section Two Routes
-Route::get('/home-page-section-two', [HomePageSectionTwoController::class, 'index']);
-Route::post('/admin/home-page-section-two', [HomePageSectionTwoController::class, 'store']);
-Route::put('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'update']);
-Route::delete('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'destroy']);
 
-/*
-|--------------------------------------------------------------------------
-| Authentication Routes
-|--------------------------------------------------------------------------
-*/
 Route::controller(RegisterController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
-Route::get('home-section-threes', [HomeSectionThreeController::class, 'index']);
-Route::get('home-section-threes/{id}', [HomeSectionThreeController::class, 'show']);
 
-Route::get('home-section-fours', [HomeSectionFourController::class, 'index']);
-Route::get('home-section-fours/active', [HomeSectionFourController::class, 'active']);
-Route::get('home-section-fours/{id}', [HomeSectionFourController::class, 'show']);
 
-Route::get('home-section-fives', [HomeSectionFiveController::class, 'index']);
-Route::get('home-section-fives/active', [HomeSectionFiveController::class, 'active']);
-Route::get('home-section-fives/{id}', [HomeSectionFiveController::class, 'show']);
-
-/*
-|--------------------------------------------------------------------------
-| Protected Routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('me', [RegisterController::class, 'me']);
     Route::post('logout', [RegisterController::class, 'logout']);
@@ -63,4 +34,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('home-section-fives', [HomeSectionFiveController::class, 'store']);
     Route::post('home-section-fives/{id}', [HomeSectionFiveController::class, 'update']);
     Route::delete('home-section-fives/{id}', [HomeSectionFiveController::class, 'destroy']);
+
+    // Home Page Section Two Routes
+    Route::get('/home-page-section-two', [HomePageSectionTwoController::class, 'index']);
+    Route::post('/admin/home-page-section-two', [HomePageSectionTwoController::class, 'store']);
+    Route::put('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'update']);
+    Route::delete('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'destroy']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('home-section-threes', [HomeSectionThreeController::class, 'index']);
+    Route::get('home-section-threes/{id}', [HomeSectionThreeController::class, 'show']);
+
+    Route::get('home-section-fours', [HomeSectionFourController::class, 'index']);
+    Route::get('home-section-fours/active', [HomeSectionFourController::class, 'active']);
+    Route::get('home-section-fours/{id}', [HomeSectionFourController::class, 'show']);
+
+    Route::get('home-section-fives', [HomeSectionFiveController::class, 'index']);
+    Route::get('home-section-fives/active', [HomeSectionFiveController::class, 'active']);
+    Route::get('home-section-fives/{id}', [HomeSectionFiveController::class, 'show']);
+
 });
