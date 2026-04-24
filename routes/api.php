@@ -18,6 +18,48 @@ use App\Http\Controllers\API\RestaurantBookingController;
 | Authentication Routes
 |--------------------------------------------------------------------------
 */
+use Illuminate\Http\Request;
+use App\Http\Controllers\Api\WelcomeSlideController;
+use App\Http\Controllers\Api\Section5LuxuryController;
+use App\Http\Controllers\Api\Section6GalleryController;
+use App\Http\Controllers\Api\Section7FitnessController;
+use App\Http\Controllers\Api\Section8ParkingController;
+use App\Http\Controllers\API\RegisterController;
+use App\Http\Controllers\API\HomeAPI\HomePageSectionTwoController;
+use App\Http\Controllers\Api\Section9RestaurantBarController;
+use App\Http\Controllers\Api\Section10SaunaController;
+use App\Http\Controllers\Api\Section11PoolController;
+use App\Http\Controllers\Api\Section12FamilyKidsController;
+use Illuminate\Support\Facades\Route;
+
+
+// ==========================================
+// PUBLIC ROUTES (No authentication required)
+// These are for React frontend - anyone can view
+// ==========================================
+
+// SECTION 1-4: WELCOME SLIDES (Public - View only)
+Route::get('/welcome-slides', [WelcomeSlideController::class, 'index']);
+Route::get('/welcome-slides/{id}', [WelcomeSlideController::class, 'show']);
+
+// SECTION 5: LUXURY SECTION (Public - View only)
+Route::get('/section5/luxury', [Section5LuxuryController::class, 'getSection']);
+
+// SECTION 6: IMAGE GALLERY (Public - View only)
+Route::get('/section6/gallery', [Section6GalleryController::class, 'getActiveImages']);
+
+// SECTION 7: FITNESS CENTER (Public - View only)
+Route::get('/section7/fitness', [Section7FitnessController::class, 'getSection']);
+
+// SECTION 8: PARKING FACILITIES (Public - View only)
+Route::get('/section8/parking', [Section8ParkingController::class, 'getSection']);
+
+// HOME PAGE SECTION TWO (Public - View only)
+Route::get('/home-page-section-two', [HomePageSectionTwoController::class, 'index']);
+
+// ==========================================
+// AUTHENTICATION ROUTES (Public - Anyone can register/login)
+// ==========================================
 Route::controller(RegisterController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
@@ -154,3 +196,75 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('restaurant-bookings/{id}', [RestaurantBookingController::class, 'update']);
     Route::delete('restaurant-bookings/{id}', [RestaurantBookingController::class, 'destroy']);
 });
+// ==========================================
+// PROTECTED ADMIN ROUTES (Authentication required)
+// Only logged-in users with valid token can access these
+// ==========================================
+// Route::middleware('auth:sanctum')->group(function () {
+    
+    // SECTION 1-4: WELCOME SLIDES (Admin)
+    Route::post('/admin/welcome-slides', [WelcomeSlideController::class, 'store']);
+    Route::put('/admin/welcome-slides/{id}', [WelcomeSlideController::class, 'update']);
+    Route::delete('/admin/welcome-slides/{id}', [WelcomeSlideController::class, 'destroy']);
+    
+    // SECTION 5: LUXURY SECTION (Admin)
+    Route::post('/admin/section5/luxury', [Section5LuxuryController::class, 'store']);
+    Route::put('/admin/section5/luxury/{id}', [Section5LuxuryController::class, 'update']);
+    Route::delete('/admin/section5/luxury/{id}', [Section5LuxuryController::class, 'destroy']);
+    
+    // SECTION 6: IMAGE GALLERY (Admin)
+    Route::post('/admin/section6/gallery', [Section6GalleryController::class, 'store']);
+    Route::put('/admin/section6/gallery/{id}', [Section6GalleryController::class, 'update']);
+    Route::delete('/admin/section6/gallery/{id}', [Section6GalleryController::class, 'destroy']);
+    
+    // SECTION 7: FITNESS CENTER (Admin)
+    Route::post('/admin/section7/fitness', [Section7FitnessController::class, 'store']);
+    Route::put('/admin/section7/fitness/{id}', [Section7FitnessController::class, 'update']);
+    Route::delete('/admin/section7/fitness/{id}', [Section7FitnessController::class, 'destroy']);
+    
+    // SECTION 8: PARKING FACILITIES (Admin)
+    Route::post('/admin/section8/parking', [Section8ParkingController::class, 'store']);
+    Route::put('/admin/section8/parking/{id}', [Section8ParkingController::class, 'update']);
+    Route::delete('/admin/section8/parking/{id}', [Section8ParkingController::class, 'destroy']);
+    
+    // HOME PAGE SECTION TWO (Admin)
+    Route::post('/admin/home-page-section-two', [HomePageSectionTwoController::class, 'store']);
+    Route::put('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'update']);
+    Route::delete('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'destroy']);
+    
+    // You can add more protected routes here later
+    // Example: Route::get('/user', [UserController::class, 'getUser']);
+
+    
+// ============ SECTION 9: RESTAURANT & BAR EXPERIENCE ============
+Route::get('/section9/restaurant-bar', [Section9RestaurantBarController::class, 'getSection']);
+Route::post('/admin/section9/restaurant-bar', [Section9RestaurantBarController::class, 'store']);
+Route::put('/admin/section9/restaurant-bar/{id}', [Section9RestaurantBarController::class, 'update']);
+Route::delete('/admin/section9/restaurant-bar/{id}', [Section9RestaurantBarController::class, 'destroy']);
+
+// Public route (frontend - view only)
+Route::get('/section10/sauna', [Section10SaunaController::class, 'getSection']);
+
+// Admin routes (manage content via Postman)
+Route::post('/admin/section10/sauna', [Section10SaunaController::class, 'store']);        // Create or update content + images
+Route::put('/admin/section10/sauna/{id}', [Section10SaunaController::class, 'updateImages']); // Update images only
+Route::delete('/admin/section10/sauna/{id}', [Section10SaunaController::class, 'destroy']);   // Delete everything
+
+
+// ============ SECTION 11: INFINITY POOL EXPERIENCE ============
+Route::get('/section11/pool', [Section11PoolController::class, 'getSection']);
+Route::post('/admin/section11/pool', [Section11PoolController::class, 'store']);
+Route::put('/admin/section11/pool/{id}', [Section11PoolController::class, 'update']);
+Route::delete('/admin/section11/pool/{id}', [Section11PoolController::class, 'destroy']);
+
+
+// ============ SECTION 12: FAMILY EXPERIENCE & KIDS ZONE ============
+Route::get('/section12/family-kids', [Section12FamilyKidsController::class, 'getSection']);
+Route::post('/admin/section12/family-kids', [Section12FamilyKidsController::class, 'store']);
+Route::put('/admin/section12/family-kids/{id}', [Section12FamilyKidsController::class, 'update']);
+Route::delete('/admin/section12/family-kids/{id}', [Section12FamilyKidsController::class, 'destroy']);
+
+
+
+
+// });
