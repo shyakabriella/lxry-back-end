@@ -1,12 +1,21 @@
 <?php
-
 use Illuminate\Http\Request;
+use App\Http\Controllers\Api\WelcomeSlideController;
+use App\Http\Controllers\Api\Section5LuxuryController;
+use App\Http\Controllers\Api\Section6GalleryController;  // ← ADD THIS LINE
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Section7FitnessController;
+use App\Http\Controllers\Api\Section8ParkingController;
 
 use App\Http\Controllers\API\RegisterController;
-use App\Http\Controllers\API\HomeSectionThreeController;
-use App\Http\Controllers\API\HomeSectionFourController;
-use App\Http\Controllers\API\HomeSectionFiveController;
+use App\Http\Controllers\API\HomeAPI\HomePageSectionTwoController;
+
+
+// Home Page Section Two Routes
+Route::get('/home-page-section-two', [HomePageSectionTwoController::class, 'index']);
+Route::post('/admin/home-page-section-two', [HomePageSectionTwoController::class, 'store']);
+Route::put('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'update']);
+Route::delete('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'destroy']);
 
 /*
 |--------------------------------------------------------------------------
