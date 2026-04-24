@@ -1,11 +1,16 @@
 <?php
-
+use Illuminate\Http\Request;
 use App\Http\Controllers\Api\WelcomeSlideController;
 use App\Http\Controllers\Api\Section5LuxuryController;
 use App\Http\Controllers\Api\Section6GalleryController;  // ← ADD THIS LINE
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Section7FitnessController;
 use App\Http\Controllers\Api\Section8ParkingController;
+
+use App\Http\Controllers\API\RegisterController;
+use App\Http\Controllers\API\HomeAPI\HomePageSectionTwoController;
+
+
 
 // ============ SECTION 1-4: WELCOME SLIDES ============
 Route::get('/welcome-slides', [WelcomeSlideController::class, 'index']);
@@ -44,3 +49,21 @@ Route::get('/section8/parking', [Section8ParkingController::class, 'getSection']
 Route::post('/admin/section8/parking', [Section8ParkingController::class, 'store']);
 Route::put('/admin/section8/parking/{id}', [Section8ParkingController::class, 'update']);
 Route::delete('/admin/section8/parking/{id}', [Section8ParkingController::class, 'destroy']);
+
+
+// Home Page Section Two Routes
+Route::get('/home-page-section-two', [HomePageSectionTwoController::class, 'index']);
+Route::post('/admin/home-page-section-two', [HomePageSectionTwoController::class, 'store']);
+Route::put('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'update']);
+Route::delete('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'destroy']);
+
+// 🔐 Auth Routes
+Route::controller(RegisterController::class)->group(function () {
+    Route::post('register', 'register');
+    Route::post('login', 'login');
+});
+
+// 🔒 Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+    // add protected APIs here later
+});
