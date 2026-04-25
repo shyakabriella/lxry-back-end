@@ -8,7 +8,14 @@ class WelcomeSlide extends Model
 {
     protected $fillable = [
         'title',
-        'description',
-        'image_url'
+        'subtitle',
+        'image_url',
+        'sort_order',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'sort_order' => 'integer',
+        'is_active' => 'boolean',
     ];
 }
