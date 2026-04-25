@@ -1,93 +1,167 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Section10Sauna;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class Section10SaunaController extends Controller
 {
-    /**
-     * Get sauna section (for frontend)
-     */
     public function getSection()
     {
         $section = Section10Sauna::first();
-        
+
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sauna section content not found'
+                'message' => 'Sauna section content not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $section
-        ]);
+            'data' => $section,
+        ], 200);
     }
 
-    /**
-     * Create or update everything (content + images)
-     * This ONE method handles both CREATE and UPDATE
-     */
     public function store(Request $request)
     {
+        $section = Section10Sauna::first();
+
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
-            'images' => 'nullable|array'
+            'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'image' => $section
+                ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']
+                : ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        // Check if record exists
-        $section = Section10Sauna::first();
-        
+        $data = [
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'description' => $request->description,
+        ];
+
+        if ($request->hasFile('image')) {
+            if ($section && $section->image_url && Storage::disk('public')->exists($section->image_url)) {
+                Storage::disk('public')->delete($section->image_url);
+            }
+
+            $data['image_url'] = $request->file('image')->store('section-10-sauna', 'public');
+        }
+
         if ($section) {
-            // UPDATE existing record
-            $section->update($request->all());
+            $section->update($data);
             $message = 'Sauna section updated successfully';
         } else {
-            // CREATE new record
-            $section = Section10Sauna::create($request->all());
+            $section = Section10Sauna::create($data);
             $message = 'Sauna section created successfully';
         }
 
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data' => $section
-        ]);
+            'data' => $section->fresh(),
+        ], 200);
     }
 
-    /**
-     * Delete sauna section
-     */
-    public function destroy($id)
+    public function update(Request $request, $id)
     {
         $section = Section10Sauna::find($id);
-        
+
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sauna section not found'
+                'message' => 'Sauna section not found',
             ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'subtitle' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'required', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = [];
+
+        if ($request->has('title')) {
+            $data['title'] = $request->title;
+        }
+
+        if ($request->has('subtitle')) {
+            $data['subtitle'] = $request->subtitle;
+        }
+
+        if ($request->has('description')) {
+            $data['description'] = $request->description;
+        }
+
+        if ($request->hasFile('image')) {
+            if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
+                Storage::disk('public')->delete($section->image_url);
+            }
+
+            $data['image_url'] = $request->file('image')->store('section-10-sauna', 'public');
+        }
+
+        $section->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sauna section updated successfully',
+            'data' => $section->fresh(),
+        ], 200);
+    }
+
+    /**
+     * Keep this method if your route uses updateImages.
+     */
+    public function updateImages(Request $request, $id)
+    {
+        return $this->update($request, $id);
+    }
+
+    public function destroy($id)
+    {
+        $section = Section10Sauna::find($id);
+
+        if (!$section) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sauna section not found',
+            ], 404);
+        }
+
+        if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
+            Storage::disk('public')->delete($section->image_url);
         }
 
         $section->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Sauna section deleted successfully'
-        ]);
+            'message' => 'Sauna section deleted successfully',
+        ], 200);
     }
 }

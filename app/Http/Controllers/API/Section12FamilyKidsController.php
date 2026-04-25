@@ -1,129 +1,159 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Section12FamilyKids;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class Section12FamilyKidsController extends Controller
 {
-    /**
-     * Get family & kids section content (for frontend)
-     */
     public function getSection()
     {
         $section = Section12FamilyKids::first();
-        
+
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Family & Kids section content not found'
+                'message' => 'Family & Kids section content not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $section
-        ]);
+            'data' => $section,
+        ], 200);
     }
 
-    /**
-     * Create or update family & kids section
-     */
     public function store(Request $request)
     {
+        $section = Section12FamilyKids::first();
+
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
-            'image_url' => 'required|url'
+            'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'image' => $section
+                ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']
+                : ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        // Check if content already exists
-        $section = Section12FamilyKids::first();
-        
+        $data = [
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'description' => $request->description,
+        ];
+
+        if ($request->hasFile('image')) {
+            if ($section && $section->image_url && Storage::disk('public')->exists($section->image_url)) {
+                Storage::disk('public')->delete($section->image_url);
+            }
+
+            $data['image_url'] = $request->file('image')->store('section-12-family-kids', 'public');
+        }
+
         if ($section) {
-            // Update existing
-            $section->update($request->all());
+            $section->update($data);
             $message = 'Family & Kids section updated successfully';
         } else {
-            // Create new
-            $section = Section12FamilyKids::create($request->all());
+            $section = Section12FamilyKids::create($data);
             $message = 'Family & Kids section created successfully';
         }
 
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data' => $section
-        ]);
+            'data' => $section->fresh(),
+        ], 200);
     }
 
-    /**
-     * Update family & kids section
-     */
     public function update(Request $request, $id)
     {
         $section = Section12FamilyKids::find($id);
-        
+
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Family & Kids section not found'
+                'message' => 'Family & Kids section not found',
             ], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'subtitle' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'image_url' => 'sometimes|required|url'
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'subtitle' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'required', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        $section->update($request->all());
+        $data = [];
+
+        if ($request->has('title')) {
+            $data['title'] = $request->title;
+        }
+
+        if ($request->has('subtitle')) {
+            $data['subtitle'] = $request->subtitle;
+        }
+
+        if ($request->has('description')) {
+            $data['description'] = $request->description;
+        }
+
+        if ($request->hasFile('image')) {
+            if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
+                Storage::disk('public')->delete($section->image_url);
+            }
+
+            $data['image_url'] = $request->file('image')->store('section-12-family-kids', 'public');
+        }
+
+        $section->update($data);
 
         return response()->json([
             'success' => true,
             'message' => 'Family & Kids section updated successfully',
-            'data' => $section
-        ]);
+            'data' => $section->fresh(),
+        ], 200);
     }
 
-    /**
-     * Delete family & kids section
-     */
     public function destroy($id)
     {
         $section = Section12FamilyKids::find($id);
-        
+
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Family & Kids section not found'
+                'message' => 'Family & Kids section not found',
             ], 404);
+        }
+
+        if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
+            Storage::disk('public')->delete($section->image_url);
         }
 
         $section->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Family & Kids section deleted successfully'
-        ]);
+            'message' => 'Family & Kids section deleted successfully',
+        ], 200);
     }
 }
