@@ -52,7 +52,7 @@ class HomeSectionOneController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -104,7 +104,7 @@ class HomeSectionOneController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 

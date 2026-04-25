@@ -82,7 +82,7 @@ class MassageSpaController extends Controller
         $validated = $request->validate([
             'hero_title' => ['nullable', 'string', 'max:255'],
             'hero_subtitle' => ['nullable', 'string', 'max:255'],
-            'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
 
             'intro_eyebrow' => ['nullable', 'string', 'max:255'],
             'intro_title' => ['nullable', 'string', 'max:255'],
@@ -90,7 +90,7 @@ class MassageSpaController extends Controller
 
             'experience_title' => ['nullable', 'string', 'max:255'],
             'experience_description' => ['nullable', 'string'],
-            'experience_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'experience_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
 
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -136,7 +136,7 @@ class MassageSpaController extends Controller
             'section' => ['required', 'in:spa_service,wellness_enhancement'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -179,7 +179,7 @@ class MassageSpaController extends Controller
             'section' => ['sometimes', 'required', 'in:spa_service,wellness_enhancement'],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);

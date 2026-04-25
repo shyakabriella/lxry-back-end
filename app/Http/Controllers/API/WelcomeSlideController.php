@@ -53,7 +53,7 @@ class WelcomeSlideController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -102,7 +102,7 @@ class WelcomeSlideController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);

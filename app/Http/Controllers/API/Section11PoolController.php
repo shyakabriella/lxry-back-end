@@ -36,8 +36,8 @@ class Section11PoolController extends Controller
             'subtitle' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'image' => $section
-                ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']
-                : ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+                ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200']
+                : ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
         ]);
 
         if ($validator->fails()) {
@@ -92,7 +92,7 @@ class Section11PoolController extends Controller
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'subtitle' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'required', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
         ]);
 
         if ($validator->fails()) {

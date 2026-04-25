@@ -54,7 +54,7 @@ class Section12FamilyKidsController extends Controller
         if ($request->hasFile('images')) {
             $validator = Validator::make($request->all(), [
                 'images' => ['required', 'array', 'min:1'],
-                'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+                'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
 
                 'titles' => ['nullable', 'array'],
                 'titles.*' => ['nullable', 'string', 'max:255'],
@@ -115,7 +115,7 @@ class Section12FamilyKidsController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -166,7 +166,7 @@ class Section12FamilyKidsController extends Controller
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'subtitle' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'required', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);
