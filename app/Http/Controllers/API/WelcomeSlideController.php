@@ -53,9 +53,6 @@ class WelcomeSlideController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'button_text' => ['nullable', 'string', 'max:255'],
-            'button_link' => ['nullable', 'string', 'max:500'],
             'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
@@ -74,9 +71,6 @@ class WelcomeSlideController extends Controller
         $slide = WelcomeSlide::create([
             'title' => $request->title,
             'subtitle' => $request->subtitle,
-            'description' => $request->description,
-            'button_text' => $request->button_text,
-            'button_link' => $request->button_link,
             'image_url' => $imagePath,
             'sort_order' => $request->filled('sort_order') ? $request->sort_order : 0,
             'is_active' => $request->has('is_active')
@@ -108,9 +102,6 @@ class WelcomeSlideController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'button_text' => ['nullable', 'string', 'max:255'],
-            'button_link' => ['nullable', 'string', 'max:500'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
@@ -132,18 +123,6 @@ class WelcomeSlideController extends Controller
 
         if ($request->has('subtitle')) {
             $data['subtitle'] = $request->subtitle;
-        }
-
-        if ($request->has('description')) {
-            $data['description'] = $request->description;
-        }
-
-        if ($request->has('button_text')) {
-            $data['button_text'] = $request->button_text;
-        }
-
-        if ($request->has('button_link')) {
-            $data['button_link'] = $request->button_link;
         }
 
         if ($request->has('sort_order')) {
