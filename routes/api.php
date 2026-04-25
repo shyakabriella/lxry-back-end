@@ -30,9 +30,21 @@ use App\Http\Controllers\API\Section10SaunaController;
 use App\Http\Controllers\API\Section11PoolController;
 use App\Http\Controllers\API\Section12FamilyKidsController;
 
+
+
 // Restaurant & Booking
 use App\Http\Controllers\API\RestaurantMenuItemController;
 use App\Http\Controllers\API\RestaurantBookingController;
+
+//wedding section 
+
+use App\Http\Controllers\Api\Wedding\WeddingSlideController;    
+use App\Http\Controllers\Api\Wedding\WeddingSection1VenueController;
+use App\Http\Controllers\Api\Wedding\WeddingSection2EasyPlanController;
+use App\Http\Controllers\Api\Wedding\WeddingSection3ApartmentController;
+use App\Http\Controllers\Api\Wedding\WeddingSection4AccommodationController;
+use App\Http\Controllers\Api\Wedding\WeddingSection5LocationController;
+use App\Http\Controllers\Api\Wedding\WeddingSection6GalleryController;
 
 // =========================================================================
 // PUBLIC ROUTES
@@ -69,6 +81,18 @@ Route::get('/section9/restaurant-bar', [Section9RestaurantBarController::class, 
 Route::get('/section10/sauna', [Section10SaunaController::class, 'getSection']);
 Route::get('/section11/pool', [Section11PoolController::class, 'getSection']);
 Route::get('/section12/family-kids', [Section12FamilyKidsController::class, 'getSection']);
+
+
+// Wedding Slides (Public)
+Route::get('/wedding/slides', [WeddingSlideController::class, 'getSlides']);
+// Wedding Section 1 (Public)
+Route::get('/wedding/section1/venue', [WeddingSection1VenueController::class, 'getSection']);
+Route::get('/wedding/section2/easy-plan', [WeddingSection2EasyPlanController::class, 'getSection']);
+Route::get('/wedding/section3/apartment', [WeddingSection3ApartmentController::class, 'getSection']);
+Route::get('/wedding/section4/accommodations', [WeddingSection4AccommodationController::class, 'getSection']);
+Route::get('/wedding/section5/location', [WeddingSection5LocationController::class, 'getSection']);
+Route::get('/wedding/section6/gallery', [WeddingSection6GalleryController::class, 'getGallery']);
+
 
 // Restaurant
 Route::get('/restaurant-menu-items', [RestaurantMenuItemController::class, 'index']);
@@ -155,4 +179,35 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/restaurant-bookings/{id}', [RestaurantBookingController::class, 'show']);
     Route::put('/restaurant-bookings/{id}', [RestaurantBookingController::class, 'update']);
     Route::delete('/restaurant-bookings/{id}', [RestaurantBookingController::class, 'destroy']);
+
+    // Wedding Slides Management (Admin)
+Route::post('/admin/wedding/slides', [WeddingSlideController::class, 'store']);
+Route::put('/admin/wedding/slides/{id}', [WeddingSlideController::class, 'update']);
+Route::delete('/admin/wedding/slides/{id}', [WeddingSlideController::class, 'destroy']);
+
+// Wedding Section 1 Management (Admin)
+Route::post('/admin/wedding/section1/venue', [WeddingSection1VenueController::class, 'store']);
+Route::put('/admin/wedding/section1/venue/{id}', [WeddingSection1VenueController::class, 'update']);
+Route::delete('/admin/wedding/section1/venue/{id}', [WeddingSection1VenueController::class, 'destroy']);
+
+Route::post('/admin/wedding/section2/easy-plan', [WeddingSection2EasyPlanController::class, 'store']);
+Route::put('/admin/wedding/section2/easy-plan/{id}', [WeddingSection2EasyPlanController::class, 'update']);
+Route::delete('/admin/wedding/section2/easy-plan/{id}', [WeddingSection2EasyPlanController::class, 'destroy']);
+// Wedding Section 3 Management (Admin)
+Route::post('/admin/wedding/section3/apartment', [WeddingSection3ApartmentController::class, 'store']);
+Route::put('/admin/wedding/section3/apartment/{id}', [WeddingSection3ApartmentController::class, 'update']);
+Route::delete('/admin/wedding/section3/apartment/{id}', [WeddingSection3ApartmentController::class, 'destroy']);
+// Add inside PROTECTED ROUTES (auth:sanctum group)
+Route::post('/admin/wedding/section4/accommodations', [WeddingSection4AccommodationController::class, 'store']);
+Route::put('/admin/wedding/section4/accommodations/{id}', [WeddingSection4AccommodationController::class, 'update']);
+Route::delete('/admin/wedding/section4/accommodations/{id}', [WeddingSection4AccommodationController::class, 'destroy']);
+// Add inside PROTECTED ROUTES (auth:sanctum group)
+Route::post('/admin/wedding/section5/location', [WeddingSection5LocationController::class, 'store']);
+Route::put('/admin/wedding/section5/location/{id}', [WeddingSection5LocationController::class, 'update']);
+Route::delete('/admin/wedding/section5/location/{id}', [WeddingSection5LocationController::class, 'destroy']);
+
+// Add inside PROTECTED ROUTES (auth:sanctum group)
+Route::post('/admin/wedding/section6/gallery', [WeddingSection6GalleryController::class, 'store']);
+Route::put('/admin/wedding/section6/gallery/{id}', [WeddingSection6GalleryController::class, 'update']);
+Route::delete('/admin/wedding/section6/gallery/{id}', [WeddingSection6GalleryController::class, 'destroy']);
 });

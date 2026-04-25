@@ -4,14 +4,18 @@ namespace App\Models\Wedding;
 
 use Illuminate\Database\Eloquent\Model;
 
-class WeddingSlide extends Model
+class WeddingSection1Venue extends Model
 {
-    protected $table = 'wedding_slides';
+    protected $table = 'wedding_section1_venues';
     
     protected $fillable = [
         'title',
         'subtitle',
         'description',
-        'image_url'
+        'images'
+    ];
+    
+    protected $casts = [
+        'images' => 'array'
     ];
 }
