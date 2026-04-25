@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 // Authentication & Core
 use App\Http\Controllers\API\RegisterController;
-use App\Http\Controllers\Api\WelcomeSlideController;
+use App\Http\Controllers\API\WelcomeSlideController;
 
 // Home Page Sections
 use App\Http\Controllers\API\HomeAPI\HomePageSectionTwoController;
@@ -21,7 +21,7 @@ use App\Http\Controllers\API\HomeSectionFourController;
 use App\Http\Controllers\API\HomeSectionFiveController;
 
 // Feature Sections
-use App\Http\Controllers\Api\Section5LuxuryController;
+use App\Http\Controllers\API\Section5LuxuryController;
 use App\Http\Controllers\API\Section6GalleryController;
 use App\Http\Controllers\API\Section7FitnessController;
 use App\Http\Controllers\API\Section8ParkingController;
@@ -38,13 +38,13 @@ use App\Http\Controllers\API\RestaurantBookingController;
 
 //wedding section 
 
-use App\Http\Controllers\Api\Wedding\WeddingSlideController;    
-use App\Http\Controllers\Api\Wedding\WeddingSection1VenueController;
-use App\Http\Controllers\Api\Wedding\WeddingSection2EasyPlanController;
-use App\Http\Controllers\Api\Wedding\WeddingSection3ApartmentController;
-use App\Http\Controllers\Api\Wedding\WeddingSection4AccommodationController;
-use App\Http\Controllers\Api\Wedding\WeddingSection5LocationController;
-use App\Http\Controllers\Api\Wedding\WeddingSection6GalleryController;
+use App\Http\Controllers\API\Wedding\WeddingSlideController;    
+use App\Http\Controllers\API\Wedding\WeddingSection1VenueController;
+use App\Http\Controllers\API\Wedding\WeddingSection2EasyPlanController;
+use App\Http\Controllers\API\Wedding\WeddingSection3ApartmentController;
+use App\Http\Controllers\API\Wedding\WeddingSection4AccommodationController;
+use App\Http\Controllers\API\Wedding\WeddingSection5LocationController;
+use App\Http\Controllers\API\Wedding\WeddingSection6GalleryController;
 
 // =========================================================================
 // PUBLIC ROUTES
