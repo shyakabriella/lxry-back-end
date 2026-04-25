@@ -11,39 +11,112 @@ use Illuminate\Support\Facades\Validator;
 class Section7FitnessController extends Controller
 {
     /**
-     * Get fitness section content for frontend.
+     * Public: Get all active fitness section images for frontend.
      */
     public function getSection()
     {
-        $section = Section7Fitness::first();
+        $sections = Section7Fitness::where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc')
+            ->get();
 
-        if (!$section) {
+        if ($sections->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Fitness section content not found',
+                'data' => [],
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $section,
+            'data' => $sections,
         ], 200);
     }
 
     /**
-     * Create or update fitness section.
+     * Admin: Create one or many fitness section images.
      */
     public function store(Request $request)
     {
-        $section = Section7Fitness::first();
+        /*
+        |--------------------------------------------------------------------------
+        | MULTIPLE UPLOAD SUPPORT
+        |--------------------------------------------------------------------------
+        | Use this if frontend sends:
+        | images[]
+        | titles[]
+        | subtitles[]
+        | descriptions[]
+        |--------------------------------------------------------------------------
+        */
+        if ($request->hasFile('images')) {
+            $validator = Validator::make($request->all(), [
+                'images' => ['required', 'array', 'min:1'],
+                'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
 
+                'titles' => ['nullable', 'array'],
+                'titles.*' => ['nullable', 'string', 'max:255'],
+
+                'subtitles' => ['nullable', 'array'],
+                'subtitles.*' => ['nullable', 'string', 'max:255'],
+
+                'descriptions' => ['nullable', 'array'],
+                'descriptions.*' => ['nullable', 'string'],
+
+                'sort_orders' => ['nullable', 'array'],
+                'sort_orders.*' => ['nullable', 'integer'],
+
+                'is_active' => ['nullable'],
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $created = [];
+
+            foreach ($request->file('images') as $index => $image) {
+                $imagePath = $image->store('section-7-fitness', 'public');
+
+                $created[] = Section7Fitness::create([
+                    'title' => $request->input("titles.$index", 'Fitness Center & Wellness Zone'),
+                    'subtitle' => $request->input("subtitles.$index", 'Train Hard Stay Strong'),
+                    'description' => $request->input("descriptions.$index", ''),
+                    'image_url' => $imagePath,
+                    'sort_order' => $request->input("sort_orders.$index", $index + 1),
+                    'is_active' => $request->has('is_active')
+                        ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN)
+                        : true,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Fitness images created successfully.',
+                'data' => $created,
+            ], 201);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SINGLE UPLOAD SUPPORT
+        |--------------------------------------------------------------------------
+        | Use this if frontend sends one request per image:
+        | title, subtitle, description, image
+        |--------------------------------------------------------------------------
+        */
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
-            'image' => $section
-                ? 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096'
-                : 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'sort_order' => ['nullable', 'integer'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -54,37 +127,28 @@ class Section7FitnessController extends Controller
             ], 422);
         }
 
-        $data = [
+        $imagePath = $request->file('image')->store('section-7-fitness', 'public');
+
+        $section = Section7Fitness::create([
             'title' => $request->title,
             'subtitle' => $request->subtitle,
             'description' => $request->description,
-        ];
-
-        if ($request->hasFile('image')) {
-            if ($section && $section->image_url && Storage::disk('public')->exists($section->image_url)) {
-                Storage::disk('public')->delete($section->image_url);
-            }
-
-            $data['image_url'] = $request->file('image')->store('section-7-fitness', 'public');
-        }
-
-        if ($section) {
-            $section->update($data);
-            $message = 'Fitness section updated successfully.';
-        } else {
-            $section = Section7Fitness::create($data);
-            $message = 'Fitness section created successfully.';
-        }
+            'image_url' => $imagePath,
+            'sort_order' => $request->filled('sort_order') ? $request->sort_order : 0,
+            'is_active' => $request->has('is_active')
+                ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN)
+                : true,
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => $message,
-            'data' => $section->fresh(),
-        ], 200);
+            'message' => 'Fitness image created successfully.',
+            'data' => $section,
+        ], 201);
     }
 
     /**
-     * Update fitness section.
+     * Admin: Update one fitness image.
      */
     public function update(Request $request, $id)
     {
@@ -98,10 +162,12 @@ class Section7FitnessController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'subtitle' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'subtitle' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'required', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'sort_order' => ['nullable', 'integer'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -126,6 +192,14 @@ class Section7FitnessController extends Controller
             $data['description'] = $request->description;
         }
 
+        if ($request->has('sort_order')) {
+            $data['sort_order'] = $request->sort_order;
+        }
+
+        if ($request->has('is_active')) {
+            $data['is_active'] = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
+        }
+
         if ($request->hasFile('image')) {
             if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
                 Storage::disk('public')->delete($section->image_url);
@@ -144,7 +218,7 @@ class Section7FitnessController extends Controller
     }
 
     /**
-     * Delete fitness section.
+     * Admin: Delete one fitness image.
      */
     public function destroy($id)
     {

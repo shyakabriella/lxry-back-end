@@ -11,39 +11,113 @@ use Illuminate\Support\Facades\Validator;
 class Section8ParkingController extends Controller
 {
     /**
-     * Get parking section content for frontend.
+     * Public: Get all active parking section images for frontend.
      */
     public function getSection()
     {
-        $section = Section8Parking::first();
+        $sections = Section8Parking::where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc')
+            ->get();
 
-        if (!$section) {
+        if ($sections->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Parking section content not found.',
+                'data' => [],
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $section,
+            'data' => $sections,
         ], 200);
     }
 
     /**
-     * Create or update parking section.
+     * Admin: Create one or many parking images.
      */
     public function store(Request $request)
     {
-        $section = Section8Parking::first();
+        /*
+        |--------------------------------------------------------------------------
+        | Multiple upload support
+        |--------------------------------------------------------------------------
+        | Frontend can send:
+        | images[]
+        | titles[]
+        | subtitles[]
+        | descriptions[]
+        | sort_orders[]
+        |--------------------------------------------------------------------------
+        */
+        if ($request->hasFile('images')) {
+            $validator = Validator::make($request->all(), [
+                'images' => ['required', 'array', 'min:1'],
+                'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
 
+                'titles' => ['nullable', 'array'],
+                'titles.*' => ['nullable', 'string', 'max:255'],
+
+                'subtitles' => ['nullable', 'array'],
+                'subtitles.*' => ['nullable', 'string', 'max:255'],
+
+                'descriptions' => ['nullable', 'array'],
+                'descriptions.*' => ['nullable', 'string'],
+
+                'sort_orders' => ['nullable', 'array'],
+                'sort_orders.*' => ['nullable', 'integer'],
+
+                'is_active' => ['nullable'],
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $created = [];
+
+            foreach ($request->file('images') as $index => $image) {
+                $imagePath = $image->store('section-8-parking', 'public');
+
+                $created[] = Section8Parking::create([
+                    'title' => $request->input("titles.$index", 'Parking Facilities'),
+                    'subtitle' => $request->input("subtitles.$index", 'Safe Space For Your Journey'),
+                    'description' => $request->input("descriptions.$index", ''),
+                    'image_url' => $imagePath,
+                    'sort_order' => $request->input("sort_orders.$index", $index + 1),
+                    'is_active' => $request->has('is_active')
+                        ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN)
+                        : true,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Parking images created successfully.',
+                'data' => $created,
+            ], 201);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Single upload support
+        |--------------------------------------------------------------------------
+        | Frontend can also send one image per request:
+        | title, subtitle, description, image
+        |--------------------------------------------------------------------------
+        */
         $validator = Validator::make($request->all(), [
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'image' => $section
-                ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']
-                : ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'sort_order' => ['nullable', 'integer'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -54,37 +128,28 @@ class Section8ParkingController extends Controller
             ], 422);
         }
 
-        $data = [
+        $imagePath = $request->file('image')->store('section-8-parking', 'public');
+
+        $section = Section8Parking::create([
             'title' => $request->title,
             'subtitle' => $request->subtitle,
             'description' => $request->description,
-        ];
-
-        if ($request->hasFile('image')) {
-            if ($section && $section->image_url && Storage::disk('public')->exists($section->image_url)) {
-                Storage::disk('public')->delete($section->image_url);
-            }
-
-            $data['image_url'] = $request->file('image')->store('section-8-parking', 'public');
-        }
-
-        if ($section) {
-            $section->update($data);
-            $message = 'Parking section updated successfully.';
-        } else {
-            $section = Section8Parking::create($data);
-            $message = 'Parking section created successfully.';
-        }
+            'image_url' => $imagePath,
+            'sort_order' => $request->filled('sort_order') ? $request->sort_order : 0,
+            'is_active' => $request->has('is_active')
+                ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN)
+                : true,
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => $message,
-            'data' => $section->fresh(),
-        ], 200);
+            'message' => 'Parking image created successfully.',
+            'data' => $section,
+        ], 201);
     }
 
     /**
-     * Update parking section.
+     * Admin: Update one parking image.
      */
     public function update(Request $request, $id)
     {
@@ -101,7 +166,9 @@ class Section8ParkingController extends Controller
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'subtitle' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'required', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'sort_order' => ['nullable', 'integer'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -126,6 +193,14 @@ class Section8ParkingController extends Controller
             $data['description'] = $request->description;
         }
 
+        if ($request->has('sort_order')) {
+            $data['sort_order'] = $request->sort_order;
+        }
+
+        if ($request->has('is_active')) {
+            $data['is_active'] = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
+        }
+
         if ($request->hasFile('image')) {
             if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
                 Storage::disk('public')->delete($section->image_url);
@@ -144,7 +219,7 @@ class Section8ParkingController extends Controller
     }
 
     /**
-     * Delete parking section.
+     * Admin: Delete one parking image.
      */
     public function destroy($id)
     {

@@ -1,17 +1,25 @@
 <?php
 
-namespace App\Models;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Database\Eloquent\Model;
-
-class Section9RestaurantBar extends Model
+class CreateSection9RestaurantBarTable extends Migration
 {
-    protected $table = 'section9_restaurant_bar';
-    
-    protected $fillable = [
-        'title',
-        'subtitle',
-        'description',
-        'image_url'
-    ];
+    public function up()
+    {
+        Schema::create('section9_restaurant_bar', function (Blueprint $table) {
+            $table->id();
+            $table->string('title')->default('Restaurant & Bar Experience');
+            $table->string('subtitle')->default('Taste. Sip. Enjoy.');
+            $table->text('description');
+            $table->string('image_url');
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('section9_restaurant_bar');
+    }
 }
