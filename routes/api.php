@@ -15,6 +15,7 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\WelcomeSlideController;
 
 // Home Page Sections
+use App\Http\Controllers\API\HomeSectionOneController;
 use App\Http\Controllers\API\HomeAPI\HomePageSectionTwoController;
 use App\Http\Controllers\API\HomeSectionThreeController;
 use App\Http\Controllers\API\HomeSectionFourController;
@@ -64,6 +65,9 @@ Route::get('/welcome-slides', [WelcomeSlideController::class, 'index']);
 Route::get('/welcome-slides/{id}', [WelcomeSlideController::class, 'show']);
 
 // Home Sections - View Only
+Route::get('/home-section-one', [HomeSectionOneController::class, 'index']);
+Route::get('/home-section-one/{id}', [HomeSectionOneController::class, 'show']);
+
 Route::get('/home-page-section-two', [HomePageSectionTwoController::class, 'index']);
 
 Route::get('/home-section-threes', [HomeSectionThreeController::class, 'index']);
@@ -153,6 +157,14 @@ Route::middleware('auth:sanctum')->group(function () {
     | Home Sections Management
     |--------------------------------------------------------------------------
     */
+
+    // Home Section One
+    Route::post('/admin/home-section-one', [HomeSectionOneController::class, 'store']);
+    Route::post('/admin/home-section-one/{id}', [HomeSectionOneController::class, 'update']);
+    Route::put('/admin/home-section-one/{id}', [HomeSectionOneController::class, 'update']);
+    Route::delete('/admin/home-section-one/{id}', [HomeSectionOneController::class, 'destroy']);
+
+    // Home Page Section Two
     Route::post('/admin/home-page-section-two', [HomePageSectionTwoController::class, 'store']);
     Route::put('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'update']);
     Route::delete('/admin/home-page-section-two/{id}', [HomePageSectionTwoController::class, 'destroy']);
