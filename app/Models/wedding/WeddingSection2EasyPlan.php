@@ -12,10 +12,14 @@ class WeddingSection2EasyPlan extends Model
         'title',
         'description',
         'image_url',
-        'features'
+        'features',
+        'display_order',
+        'is_active'
     ];
     
     protected $casts = [
-        'features' => 'array'
+        'features' => 'array',
+        'is_active' => 'boolean',
+        'display_order' => 'integer'
     ];
 }
