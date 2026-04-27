@@ -5,49 +5,52 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\WelcomeSlide;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
-class WelcomeSlideController extends Controller
+class WelcomeSlideController extends Controller  // Changed from WeddingSlideController to WelcomeSlideController
 {
-    /**
-     * Get all welcome slides for React frontend.
-     */
+    // Get all welcome slides (public)
     public function index()
     {
-        $slides = WelcomeSlide::orderBy('sort_order', 'asc')
-            ->orderBy('id', 'desc')
-            ->get();
-
+        $slides = WelcomeSlide::orderBy('sort_order', 'asc')->get();
+        
+        $slides->transform(function ($slide) {
+            if ($slide->image_url && !filter_var($slide->image_url, FILTER_VALIDATE_URL)) {
+                $slide->image_url = asset('storage/' . $slide->image_url);
+            }
+            return $slide;
+        });
+        
         return response()->json([
             'success' => true,
-            'data' => $slides,
-        ], 200);
+            'data' => $slides
+        ]);
     }
 
-    /**
-     * Get single welcome slide.
-     */
+    // Get single slide (public)
     public function show($id)
     {
         $slide = WelcomeSlide::find($id);
-
+        
         if (!$slide) {
             return response()->json([
                 'success' => false,
-                'message' => 'Slide not found.',
+                'message' => 'Slide not found'
             ], 404);
         }
-
+        
+        if ($slide->image_url && !filter_var($slide->image_url, FILTER_VALIDATE_URL)) {
+            $slide->image_url = asset('storage/' . $slide->image_url);
+        }
+        
         return response()->json([
             'success' => true,
-            'data' => $slide,
-        ], 200);
+            'data' => $slide
+        ]);
     }
 
-    /**
-     * Create new welcome slide.
-     */
+    // Create slide (admin)
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -61,8 +64,7 @@ class WelcomeSlideController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed.',
-                'errors' => $validator->errors(),
+                'errors' => $validator->errors()
             ], 422);
         }
 
@@ -72,30 +74,21 @@ class WelcomeSlideController extends Controller
             'title' => $request->title,
             'subtitle' => $request->subtitle,
             'image_url' => $imagePath,
-            'sort_order' => $request->filled('sort_order') ? $request->sort_order : 0,
-            'is_active' => $request->has('is_active')
-                ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN)
-                : true,
-        ]);
-
-        return response()->json([
+            'sort_order' => $request->sort_order ?? 0
             'success' => true,
-            'message' => 'Slide created successfully.',
-            'data' => $slide,
+            'data' => $slide
         ], 201);
     }
 
-    /**
-     * Update welcome slide.
-     */
+    // Update slide (admin)
     public function update(Request $request, $id)
     {
         $slide = WelcomeSlide::find($id);
-
+        
         if (!$slide) {
             return response()->json([
                 'success' => false,
-                'message' => 'Slide not found.',
+                'message' => 'Slide not found'
             ], 404);
         }
 
@@ -110,8 +103,7 @@ class WelcomeSlideController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed.',
-                'errors' => $validator->errors(),
+                'errors' => $validator->errors()
             ], 422);
         }
 
@@ -137,7 +129,6 @@ class WelcomeSlideController extends Controller
             if ($slide->image_url && Storage::disk('public')->exists($slide->image_url)) {
                 Storage::disk('public')->delete($slide->image_url);
             }
-
             $data['image_url'] = $request->file('image')->store('welcome-slides', 'public');
         }
 
@@ -145,22 +136,20 @@ class WelcomeSlideController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Slide updated successfully.',
-            'data' => $slide->fresh(),
-        ], 200);
+            'message' => 'Welcome slide updated successfully',
+            'data' => $slide
+        ]);
     }
 
-    /**
-     * Delete welcome slide.
-     */
+    // Delete slide (admin)
     public function destroy($id)
     {
         $slide = WelcomeSlide::find($id);
-
+        
         if (!$slide) {
             return response()->json([
                 'success' => false,
-                'message' => 'Slide not found.',
+                'message' => 'Slide not found'
             ], 404);
         }
 
@@ -172,7 +161,7 @@ class WelcomeSlideController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Slide deleted successfully.',
-        ], 200);
+            'message' => 'Welcome slide deleted successfully'
+        ]);
     }
 }

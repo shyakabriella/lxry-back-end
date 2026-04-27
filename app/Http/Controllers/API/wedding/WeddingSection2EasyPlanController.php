@@ -6,35 +6,73 @@ use App\Http\Controllers\Controller;
 use App\Models\Wedding\WeddingSection2EasyPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class WeddingSection2EasyPlanController extends Controller
 {
-    // Get wedding section 2 (public)
-    public function getSection()
+    // Get all active slides (public)
+    public function getSlides()
     {
-        $section = WeddingSection2EasyPlan::first();
+        $slides = WeddingSection2EasyPlan::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
         
-        if (!$section) {
+        // Process image URLs
+        $slides->transform(function ($slide) {
+            if ($slide->image_url && !filter_var($slide->image_url, FILTER_VALIDATE_URL)) {
+                $slide->image_url = asset('storage/' . $slide->image_url);
+            }
+            return $slide;
+        });
+        
+        return response()->json([
+            'success' => true,
+            'data' => $slides
+        ]);
+    }
+
+    // Get all slides (admin)
+    public function index()
+    {
+        $slides = WeddingSection2EasyPlan::orderBy('display_order')->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $slides
+        ]);
+    }
+
+    // Get single slide
+    public function show($id)
+    {
+        $slide = WeddingSection2EasyPlan::find($id);
+        
+        if (!$slide) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding section 2 content not found'
+                'message' => 'Slide not found'
             ], 404);
+        }
+
+        if ($slide->image_url && !filter_var($slide->image_url, FILTER_VALIDATE_URL)) {
+            $slide->image_url = asset('storage/' . $slide->image_url);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $section
+            'data' => $slide
         ]);
     }
 
-    // Create or update wedding section 2 (admin)
+    // Create new slide (admin)
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
+            'subtitle' => 'required|string|max:255',
             'description' => 'required|string',
-            'image_url' => 'nullable|url',
-            'features' => 'nullable|array'
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'display_order' => 'nullable|integer'
         ]);
 
         if ($validator->fails()) {
@@ -44,40 +82,45 @@ class WeddingSection2EasyPlanController extends Controller
             ], 422);
         }
 
-        $section = WeddingSection2EasyPlan::first();
-        
-        if ($section) {
-            $section->update($request->all());
-            $message = 'Wedding section 2 updated successfully';
-        } else {
-            $section = WeddingSection2EasyPlan::create($request->all());
-            $message = 'Wedding section 2 created successfully';
-        }
+        // Handle image upload
+        $imagePath = $request->file('image')->store('wedding-section2', 'public');
+
+        $maxOrder = WeddingSection2EasyPlan::max('display_order') ?? 0;
+
+        $slide = WeddingSection2EasyPlan::create([
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'description' => $request->description,
+            'image_url' => $imagePath,
+            'display_order' => $request->display_order ?? $maxOrder + 1,
+            'is_active' => true
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => $message,
-            'data' => $section
-        ]);
+            'message' => 'Slide created successfully',
+            'data' => $slide
+        ], 201);
     }
 
-    // Update wedding section 2 (admin)
+    // Update slide (admin)
     public function update(Request $request, $id)
     {
-        $section = WeddingSection2EasyPlan::find($id);
+        $slide = WeddingSection2EasyPlan::find($id);
         
-        if (!$section) {
+        if (!$slide) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding section 2 not found'
+                'message' => 'Slide not found'
             ], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'image_url' => 'nullable|url',
-            'features' => 'nullable|array'
+            'title' => 'required|string|max:255',
+            'subtitle' => 'required|string|max:255',
+            'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'display_order' => 'nullable|integer'
         ]);
 
         if ($validator->fails()) {
@@ -87,32 +130,53 @@ class WeddingSection2EasyPlanController extends Controller
             ], 422);
         }
 
-        $section->update($request->all());
+        $data = [
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'description' => $request->description,
+            'display_order' => $request->display_order ?? $slide->display_order
+        ];
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($slide->image_url && Storage::disk('public')->exists($slide->image_url)) {
+                Storage::disk('public')->delete($slide->image_url);
+            }
+            $data['image_url'] = $request->file('image')->store('wedding-section2', 'public');
+        }
+
+        $slide->update($data);
 
         return response()->json([
             'success' => true,
-            'message' => 'Wedding section 2 updated successfully',
-            'data' => $section
+            'message' => 'Slide updated successfully',
+            'data' => $slide
         ]);
     }
 
-    // Delete wedding section 2 (admin)
+    // Delete slide (admin)
     public function destroy($id)
     {
-        $section = WeddingSection2EasyPlan::find($id);
+        $slide = WeddingSection2EasyPlan::find($id);
         
-        if (!$section) {
+        if (!$slide) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding section 2 not found'
+                'message' => 'Slide not found'
             ], 404);
         }
 
-        $section->delete();
+        // Delete image file
+        if ($slide->image_url && Storage::disk('public')->exists($slide->image_url)) {
+            Storage::disk('public')->delete($slide->image_url);
+        }
+
+        $slide->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Wedding section 2 deleted successfully'
+            'message' => 'Slide deleted successfully'
         ]);
     }
 }

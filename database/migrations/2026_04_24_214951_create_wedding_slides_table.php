@@ -13,7 +13,8 @@ class CreateWeddingSlidesTable extends Migration
             $table->string('title');
             $table->string('subtitle')->nullable();
             $table->text('description')->nullable();
-            $table->string('image_url');
+            $table->string('image_url')->nullable(); // This will store the file path
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
     }

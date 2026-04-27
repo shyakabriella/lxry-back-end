@@ -1,21 +1,18 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Wedding;
 
 use Illuminate\Database\Eloquent\Model;
 
-class WelcomeSlide extends Model
+class WeddingSlide extends Model
 {
+    protected $table = 'wedding_slides';
+    
     protected $fillable = [
         'title',
         'subtitle',
+        'description',
         'image_url',
-        'sort_order',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'sort_order' => 'integer',
-        'is_active' => 'boolean',
+        'sort_order'
     ];
 }
