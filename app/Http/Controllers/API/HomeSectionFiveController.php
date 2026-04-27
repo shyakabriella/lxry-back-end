@@ -50,7 +50,7 @@ class HomeSectionFiveController extends Controller
             'description' => ['nullable', 'string'],
             'button_text' => ['nullable', 'string', 'max:255'],
             'button_link' => ['nullable', 'string', 'max:500'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -116,7 +116,7 @@ class HomeSectionFiveController extends Controller
             'description' => ['nullable', 'string'],
             'button_text' => ['nullable', 'string', 'max:255'],
             'button_link' => ['nullable', 'string', 'max:500'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 

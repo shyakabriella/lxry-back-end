@@ -31,7 +31,7 @@ class Section6GalleryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'display_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -80,7 +80,7 @@ class Section6GalleryController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'display_order' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
         ]);

@@ -7,15 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Section10Sauna extends Model
 {
     protected $table = 'section10_sauna';
-    
+
     protected $fillable = [
         'title',
         'subtitle',
         'description',
-        'images'
+        'image_url',
+        'sort_order',
+        'is_active',
     ];
-    
+
     protected $casts = [
-        'images' => 'array' // Automatically cast JSON to array
+        'sort_order' => 'integer',
+        'is_active' => 'boolean',
     ];
 }

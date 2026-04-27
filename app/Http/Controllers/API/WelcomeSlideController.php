@@ -54,10 +54,11 @@ class WelcomeSlideController extends Controller  // Changed from WeddingSlideCon
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:5120',
-            'sort_order' => 'nullable|integer'
+            'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
+            'sort_order' => ['nullable', 'integer'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -71,14 +72,10 @@ class WelcomeSlideController extends Controller  // Changed from WeddingSlideCon
 
         $slide = WelcomeSlide::create([
             'title' => $request->title,
-            'description' => $request->description,
+            'subtitle' => $request->subtitle,
             'image_url' => $imagePath,
             'sort_order' => $request->sort_order ?? 0
-        ]);
-
-        return response()->json([
             'success' => true,
-            'message' => 'Welcome slide created successfully',
             'data' => $slide
         ], 201);
     }
@@ -96,10 +93,11 @@ class WelcomeSlideController extends Controller  // Changed from WeddingSlideCon
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
-            'sort_order' => 'nullable|integer'
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
+            'sort_order' => ['nullable', 'integer'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -109,7 +107,23 @@ class WelcomeSlideController extends Controller  // Changed from WeddingSlideCon
             ], 422);
         }
 
-        $data = $request->only(['title', 'description', 'sort_order']);
+        $data = [];
+
+        if ($request->has('title')) {
+            $data['title'] = $request->title;
+        }
+
+        if ($request->has('subtitle')) {
+            $data['subtitle'] = $request->subtitle;
+        }
+
+        if ($request->has('sort_order')) {
+            $data['sort_order'] = $request->sort_order;
+        }
+
+        if ($request->has('is_active')) {
+            $data['is_active'] = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
+        }
 
         if ($request->hasFile('image')) {
             if ($slide->image_url && Storage::disk('public')->exists($slide->image_url)) {

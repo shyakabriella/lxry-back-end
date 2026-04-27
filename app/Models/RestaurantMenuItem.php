@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class RestaurantMenuItem extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'tab',
+        'category_id',
         'category',
         'name',
         'description',
@@ -23,14 +27,8 @@ class RestaurantMenuItem extends Model
         'sort_order' => 'integer',
     ];
 
-    protected $appends = ['image_url'];
-
-    public function getImageUrlAttribute(): ?string
+    public function categoryRelation()
     {
-        if (!$this->image) {
-            return null;
-        }
-
-        return asset('storage/' . $this->image);
+        return $this->belongsTo(RestaurantMenuCategory::class, 'category_id');
     }
 }
