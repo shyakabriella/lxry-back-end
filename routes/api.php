@@ -15,7 +15,7 @@ use App\Http\Controllers\API\WelcomeSlideController;
 
 // Home Page Sections
 use App\Http\Controllers\API\HomeSectionOneController;
-use App\Http\Controllers\API\HomeAPI\HomePageSectionTwoController;
+use App\Http\Controllers\API\HomePageSectionTwoController;
 use App\Http\Controllers\API\HomeSectionThreeController;
 use App\Http\Controllers\API\HomeSectionFourController;
 use App\Http\Controllers\API\HomeSectionFiveController;
@@ -61,6 +61,8 @@ use App\Http\Controllers\API\Wedding\Services\WeddingServicesSection2Controller;
 use App\Http\Controllers\API\Wedding\Services\WeddingServicesSection3Controller;
 use App\Http\Controllers\API\Wedding\Services\WeddingServicesSection4Controller;
 use App\Http\Controllers\API\Wedding\Services\WeddingServicesSection5Controller;
+// Wedding Services (Simple CRUD)
+use App\Http\Controllers\API\Wedding\WeddingServiceController;
 
 // Wedding Packages 
 use App\Http\Controllers\API\Wedding\Packages\WeddingPackagesHeroController;
@@ -133,6 +135,8 @@ Route::get('/wedding/section3/apartment', [WeddingSection3ApartmentController::c
 Route::get('/wedding/section4/accommodations', [WeddingSection4AccommodationController::class, 'getSection']);
 Route::get('/wedding/section5/location', [WeddingSection5LocationController::class, 'getSection']);
 Route::get('/wedding/section6/gallery', [WeddingSection6GalleryController::class, 'getGallery']);
+// Wedding Services (Public - View Only)
+Route::get('/wedding/services', [WeddingServiceController::class, 'getServices']);
 
 
 // Restaurant
@@ -254,9 +258,12 @@ Route::delete('/admin/wedding/section4/accommodations/{id}', [WeddingSection4Acc
 Route::post('/admin/wedding/section5/location', [WeddingSection5LocationController::class, 'store']);
 Route::put('/admin/wedding/section5/location/{id}', [WeddingSection5LocationController::class, 'update']);
 Route::delete('/admin/wedding/section5/location/{id}', [WeddingSection5LocationController::class, 'destroy']);
-
-// Add inside PROTECTED ROUTES (auth:sanctum group)
+// Protected routes (inside auth:sanctum group)
 Route::post('/admin/wedding/section6/gallery', [WeddingSection6GalleryController::class, 'store']);
 Route::put('/admin/wedding/section6/gallery/{id}', [WeddingSection6GalleryController::class, 'update']);
 Route::delete('/admin/wedding/section6/gallery/{id}', [WeddingSection6GalleryController::class, 'destroy']);
+// Wedding Services Management (Admin)
+Route::post('/admin/wedding/services', [WeddingServiceController::class, 'store']);
+Route::put('/admin/wedding/services/{id}', [WeddingServiceController::class, 'update']);
+Route::delete('/admin/wedding/services/{id}', [WeddingServiceController::class, 'destroy']);
 });

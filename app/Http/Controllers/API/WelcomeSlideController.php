@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 
-class WelcomeSlideController extends Controller  // Changed from WeddingSlideController to WelcomeSlideController
+class WelcomeSlideController extends Controller
 {
     // Get all welcome slides (public)
     public function index()
@@ -75,7 +75,11 @@ class WelcomeSlideController extends Controller  // Changed from WeddingSlideCon
             'subtitle' => $request->subtitle,
             'image_url' => $imagePath,
             'sort_order' => $request->sort_order ?? 0
+        ]);
+
+        return response()->json([
             'success' => true,
+            'message' => 'Welcome slide created successfully',
             'data' => $slide
         ], 201);
     }
