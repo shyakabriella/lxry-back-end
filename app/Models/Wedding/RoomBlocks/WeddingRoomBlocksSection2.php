@@ -12,6 +12,8 @@ class WeddingRoomBlocksSection2 extends Model
         'title',
         'subtitle',
         'description',
-        'image_url'
+        'image_url',
+        'sort_order',
+        'is_active'
     ];
 }

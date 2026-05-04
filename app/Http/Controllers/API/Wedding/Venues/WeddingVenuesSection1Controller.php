@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class WeddingVenuesSection1Controller extends Controller
 {
-    // Get section 1 (public)
     public function getSection()
     {
         $section = WeddingVenuesSection1::first();
@@ -27,7 +26,6 @@ class WeddingVenuesSection1Controller extends Controller
         ]);
     }
 
-    // Create or update section 1 (admin)
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -45,11 +43,17 @@ class WeddingVenuesSection1Controller extends Controller
 
         $section = WeddingVenuesSection1::first();
         
+        $data = [
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'description' => $request->description,
+        ];
+        
         if ($section) {
-            $section->update($request->all());
+            $section->update($data);
             $message = 'Wedding venues section 1 updated successfully';
         } else {
-            $section = WeddingVenuesSection1::create($request->all());
+            $section = WeddingVenuesSection1::create($data);
             $message = 'Wedding venues section 1 created successfully';
         }
 
@@ -60,7 +64,6 @@ class WeddingVenuesSection1Controller extends Controller
         ]);
     }
 
-    // Update section 1 (admin)
     public function update(Request $request, $id)
     {
         $section = WeddingVenuesSection1::find($id);
@@ -94,7 +97,6 @@ class WeddingVenuesSection1Controller extends Controller
         ]);
     }
 
-    // Delete section 1 (admin)
     public function destroy($id)
     {
         $section = WeddingVenuesSection1::find($id);

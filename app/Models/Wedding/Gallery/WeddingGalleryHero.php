@@ -12,6 +12,6 @@ class WeddingGalleryHero extends Model
         'title',
         'subtitle',
         'description',
-        'background_image'
+        'background_image'  // Change from image_url to background_image
     ];
 }

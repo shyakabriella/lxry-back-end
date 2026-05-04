@@ -17,10 +17,13 @@ class WeddingSection2EasyPlanController extends Controller
             ->orderBy('display_order')
             ->get();
         
-        // Process image URLs
+        // Process image URLs to return full URLs using asset()
         $slides->transform(function ($slide) {
             if ($slide->image_url && !filter_var($slide->image_url, FILTER_VALIDATE_URL)) {
-                $slide->image_url = asset('storage/' . $slide->image_url);
+                // Remove any leading slashes or storage prefix
+                $cleanPath = ltrim($slide->image_url, '/');
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                $slide->image_url = asset('storage/' . $cleanPath);
             }
             return $slide;
         });
@@ -35,6 +38,17 @@ class WeddingSection2EasyPlanController extends Controller
     public function index()
     {
         $slides = WeddingSection2EasyPlan::orderBy('display_order')->get();
+        
+        // Process image URLs to return full URLs using asset()
+        $slides->transform(function ($slide) {
+            if ($slide->image_url && !filter_var($slide->image_url, FILTER_VALIDATE_URL)) {
+                $cleanPath = ltrim($slide->image_url, '/');
+ 
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                $slide->image_url = asset('storage/' . $cleanPath);
+            }
+            return $slide;
+        });
         
         return response()->json([
             'success' => true,
@@ -55,7 +69,9 @@ class WeddingSection2EasyPlanController extends Controller
         }
 
         if ($slide->image_url && !filter_var($slide->image_url, FILTER_VALIDATE_URL)) {
-            $slide->image_url = asset('storage/' . $slide->image_url);
+            $cleanPath = ltrim($slide->image_url, '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $slide->image_url = asset('storage/' . $cleanPath);
         }
 
         return response()->json([
@@ -96,10 +112,18 @@ class WeddingSection2EasyPlanController extends Controller
             'is_active' => true
         ]);
 
+        // Return full URL in response using asset()
+        $responseData = $slide->toArray();
+        if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($responseData['image_url'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $responseData['image_url'] = asset('storage/' . $cleanPath);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Slide created successfully',
-            'data' => $slide
+            'data' => $responseData
         ], 201);
     }
 
@@ -148,10 +172,18 @@ class WeddingSection2EasyPlanController extends Controller
 
         $slide->update($data);
 
+        // Return full URL in response using asset()
+        $responseData = $slide->fresh()->toArray();
+        if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($responseData['image_url'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $responseData['image_url'] = asset('storage/' . $cleanPath);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Slide updated successfully',
-            'data' => $slide
+            'data' => $responseData
         ]);
     }
 

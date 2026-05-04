@@ -22,9 +22,19 @@ class WeddingSection4AccommodationController extends Controller
                 ], 404);
             }
 
+            // Convert image path to FULL URL using asset() instead of Storage::url()
+            $data = $section->toArray();
+            if ($data['image_url'] && !filter_var($data['image_url'], FILTER_VALIDATE_URL)) {
+                // Remove any leading slashes or storage prefix
+                $cleanPath = ltrim($data['image_url'], '/');
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                // Use asset() to generate full URL
+                $data['image_url'] = asset('storage/' . $cleanPath);
+            }
+
             return response()->json([
                 'success' => true,
-                'data' => $section
+                'data' => $data
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -59,7 +69,7 @@ class WeddingSection4AccommodationController extends Controller
                 $image = $request->file('image');
                 $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
                 $imagePath = $image->storeAs('wedding-section4', $filename, 'public');
-            } elseif ($request->has('image_url')) {
+            } elseif ($request->has('image_url') && $request->image_url) {
                 $imagePath = $request->image_url;
             }
 
@@ -73,10 +83,18 @@ class WeddingSection4AccommodationController extends Controller
                 'amenities' => $amenities
             ]);
 
+            // Return full URL in response
+            $responseData = $section->toArray();
+            if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+                $cleanPath = ltrim($responseData['image_url'], '/');
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                $responseData['image_url'] = asset('storage/' . $cleanPath);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Wedding section 4 created successfully',
-                'data' => $section
+                'data' => $responseData
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -130,16 +148,24 @@ class WeddingSection4AccommodationController extends Controller
                 $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
                 $imagePath = $image->storeAs('wedding-section4', $filename, 'public');
                 $section->image_url = $imagePath;
-            } elseif ($request->has('image_url')) {
+            } elseif ($request->has('image_url') && $request->image_url) {
                 $section->image_url = $request->image_url;
             }
 
             $section->save();
 
+            // Return full URL in response
+            $responseData = $section->fresh()->toArray();
+            if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+                $cleanPath = ltrim($responseData['image_url'], '/');
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                $responseData['image_url'] = asset('storage/' . $cleanPath);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Wedding section 4 updated successfully',
-                'data' => $section
+                'data' => $responseData
             ]);
         } catch (\Exception $e) {
             return response()->json([
