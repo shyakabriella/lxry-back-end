@@ -4,7 +4,7 @@ namespace App\Models\Wedding;
 
 use Illuminate\Database\Eloquent\Model;
 
-class WeddingSlide extends Model
+class WelcomeSlide extends Model
 {
     protected $table = 'wedding_slides';
     

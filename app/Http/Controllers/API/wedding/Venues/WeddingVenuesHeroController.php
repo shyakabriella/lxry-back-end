@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Wedding\Venues\WeddingVenuesHero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class WeddingVenuesHeroController extends Controller
 {
@@ -20,9 +21,17 @@ class WeddingVenuesHeroController extends Controller
             ], 404);
         }
 
+        // Convert stored path to full URL
+        $data = $hero->toArray();
+        if ($data['background_image'] && !filter_var($data['background_image'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($data['background_image'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $data['background_image'] = asset('storage/' . $cleanPath);
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $hero
+            'data' => $data
         ]);
     }
 
@@ -30,7 +39,7 @@ class WeddingVenuesHeroController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'background_image' => 'required|url'
+            'background_image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:5120'
         ]);
 
         if ($validator->fails()) {
@@ -42,18 +51,40 @@ class WeddingVenuesHeroController extends Controller
 
         $hero = WeddingVenuesHero::first();
         
+        $data = [
+            'title' => $request->title,
+        ];
+        
+        // Handle image upload
+        if ($request->hasFile('background_image')) {
+            $imagePath = $request->file('background_image')->store('wedding-venues-hero', 'public');
+            $data['background_image'] = $imagePath;
+        }
+        
         if ($hero) {
-            $hero->update($request->all());
+            // Delete old image if exists
+            if ($hero->background_image && Storage::disk('public')->exists($hero->background_image)) {
+                Storage::disk('public')->delete($hero->background_image);
+            }
+            $hero->update($data);
             $message = 'Wedding venues hero updated successfully';
         } else {
-            $hero = WeddingVenuesHero::create($request->all());
+            $hero = WeddingVenuesHero::create($data);
             $message = 'Wedding venues hero created successfully';
+        }
+
+        // Return full URL in response
+        $responseData = $hero->toArray();
+        if ($responseData['background_image'] && !filter_var($responseData['background_image'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($responseData['background_image'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $responseData['background_image'] = asset('storage/' . $cleanPath);
         }
 
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data' => $hero
+            'data' => $responseData
         ]);
     }
 
@@ -70,7 +101,7 @@ class WeddingVenuesHeroController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
-            'background_image' => 'sometimes|required|url'
+            'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120'
         ]);
 
         if ($validator->fails()) {
@@ -80,12 +111,33 @@ class WeddingVenuesHeroController extends Controller
             ], 422);
         }
 
-        $hero->update($request->all());
+        if ($request->has('title')) {
+            $hero->title = $request->title;
+        }
+
+        // Handle image upload
+        if ($request->hasFile('background_image')) {
+            // Delete old image
+            if ($hero->background_image && Storage::disk('public')->exists($hero->background_image)) {
+                Storage::disk('public')->delete($hero->background_image);
+            }
+            $hero->background_image = $request->file('background_image')->store('wedding-venues-hero', 'public');
+        }
+
+        $hero->save();
+
+        // Return full URL in response
+        $responseData = $hero->fresh()->toArray();
+        if ($responseData['background_image'] && !filter_var($responseData['background_image'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($responseData['background_image'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $responseData['background_image'] = asset('storage/' . $cleanPath);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Wedding venues hero updated successfully',
-            'data' => $hero
+            'data' => $responseData
         ]);
     }
 
@@ -100,6 +152,11 @@ class WeddingVenuesHeroController extends Controller
             ], 404);
         }
 
+        // Delete associated image
+        if ($hero->background_image && Storage::disk('public')->exists($hero->background_image)) {
+            Storage::disk('public')->delete($hero->background_image);
+        }
+        
         $hero->delete();
 
         return response()->json([

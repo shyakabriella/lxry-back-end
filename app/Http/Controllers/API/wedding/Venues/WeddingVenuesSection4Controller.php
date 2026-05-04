@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Wedding\Venues\WeddingVenuesSection4;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class WeddingVenuesSection4Controller extends Controller
 {
-    // Get section 4 (public)
     public function getSection()
     {
         $section = WeddingVenuesSection4::first();
@@ -21,20 +21,27 @@ class WeddingVenuesSection4Controller extends Controller
             ], 404);
         }
 
+        $data = $section->toArray();
+        if ($data['image_url'] && !filter_var($data['image_url'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($data['image_url'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $data['image_url'] = asset('storage/' . $cleanPath);
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $section
+            'data' => $data
         ]);
     }
 
-    // Create or update section 4 (admin)
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'subtitle' => 'required|string|max:255',
             'description' => 'required|string',
-            'image_url' => 'required|url'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_url' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -46,22 +53,43 @@ class WeddingVenuesSection4Controller extends Controller
 
         $section = WeddingVenuesSection4::first();
         
+        $data = [
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'description' => $request->description,
+        ];
+        
+        if ($request->hasFile('image')) {
+            if ($section && $section->image_url) {
+                Storage::disk('public')->delete($section->image_url);
+            }
+            $data['image_url'] = $request->file('image')->store('wedding-venues-section4', 'public');
+        } elseif ($request->has('image_url') && $request->image_url) {
+            $data['image_url'] = $request->image_url;
+        }
+        
         if ($section) {
-            $section->update($request->all());
+            $section->update($data);
             $message = 'Wedding venues section 4 updated successfully';
         } else {
-            $section = WeddingVenuesSection4::create($request->all());
+            $section = WeddingVenuesSection4::create($data);
             $message = 'Wedding venues section 4 created successfully';
+        }
+
+        $responseData = $section->toArray();
+        if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($responseData['image_url'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $responseData['image_url'] = asset('storage/' . $cleanPath);
         }
 
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data' => $section
+            'data' => $responseData
         ]);
     }
 
-    // Update section 4 (admin)
     public function update(Request $request, $id)
     {
         $section = WeddingVenuesSection4::find($id);
@@ -77,7 +105,8 @@ class WeddingVenuesSection4Controller extends Controller
             'title' => 'sometimes|required|string|max:255',
             'subtitle' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
-            'image_url' => 'sometimes|required|url'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_url' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -87,16 +116,35 @@ class WeddingVenuesSection4Controller extends Controller
             ], 422);
         }
 
-        $section->update($request->all());
+        if ($request->has('title')) $section->title = $request->title;
+        if ($request->has('subtitle')) $section->subtitle = $request->subtitle;
+        if ($request->has('description')) $section->description = $request->description;
+
+        if ($request->hasFile('image')) {
+            if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
+                Storage::disk('public')->delete($section->image_url);
+            }
+            $section->image_url = $request->file('image')->store('wedding-venues-section4', 'public');
+        } elseif ($request->has('image_url') && $request->image_url) {
+            $section->image_url = $request->image_url;
+        }
+
+        $section->save();
+
+        $responseData = $section->fresh()->toArray();
+        if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($responseData['image_url'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $responseData['image_url'] = asset('storage/' . $cleanPath);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Wedding venues section 4 updated successfully',
-            'data' => $section
+            'data' => $responseData
         ]);
     }
 
-    // Delete section 4 (admin)
     public function destroy($id)
     {
         $section = WeddingVenuesSection4::find($id);
@@ -106,6 +154,10 @@ class WeddingVenuesSection4Controller extends Controller
                 'success' => false,
                 'message' => 'Wedding venues section 4 not found'
             ], 404);
+        }
+
+        if ($section->image_url && !filter_var($section->image_url, FILTER_VALIDATE_URL)) {
+            Storage::disk('public')->delete($section->image_url);
         }
 
         $section->delete();

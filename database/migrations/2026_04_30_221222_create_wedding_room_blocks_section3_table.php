@@ -4,22 +4,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateWeddingRoomBlocksSection3Table extends Migration
+return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::create('wedding_room_blocks_section3', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->default('Cottages');
-            $table->string('subtitle')->default('1 King | Sleeps 2');
-            $table->text('description');
-            $table->string('image_url');
+            $table->json('items')->nullable();
             $table->timestamps();
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('wedding_room_blocks_section3');
     }
-}
+};

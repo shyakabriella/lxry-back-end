@@ -5,114 +5,170 @@ namespace App\Http\Controllers\API\Wedding\RoomBlocks;
 use App\Http\Controllers\Controller;
 use App\Models\Wedding\RoomBlocks\WeddingRoomBlocksSection2;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class WeddingRoomBlocksSection2Controller extends Controller
 {
-    // Get section 2 (public)
     public function getSection()
     {
-        $section = WeddingRoomBlocksSection2::first();
+        $items = WeddingRoomBlocksSection2::orderBy('sort_order', 'asc')->get();
         
-        if (!$section) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Wedding room blocks section 2 not found'
-            ], 404);
+        foreach ($items as $item) {
+            // Convert single image URL (backward compatibility)
+            if ($item->image_url && !filter_var($item->image_url, FILTER_VALIDATE_URL)) {
+                $item->image_url = asset('storage/' . $item->image_url);
+            }
+            
+            // Convert multiple images
+            if ($item->images) {
+                $images = json_decode($item->images, true);
+                foreach ($images as &$image) {
+                    if ($image && !filter_var($image, FILTER_VALIDATE_URL)) {
+                        $image = asset('storage/' . $image);
+                    }
+                }
+                $item->images = $images;
+            } else {
+                $item->images = ['', '', ''];
+            }
         }
-
+        
         return response()->json([
             'success' => true,
-            'data' => $section
+            'data' => $items
         ]);
     }
 
-    // Create or update section 2 (admin)
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
-            'image_url' => 'required|url'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $section = WeddingRoomBlocksSection2::first();
+        $item = new WeddingRoomBlocksSection2();
+        $item->title = $request->title;
+        $item->subtitle = $request->subtitle ?? '';
+        $item->description = $request->description ?? '';
+        $item->sort_order = $request->sort_order ?? 0;
         
-        if ($section) {
-            $section->update($request->all());
-            $message = 'Wedding room blocks section 2 updated successfully';
-        } else {
-            $section = WeddingRoomBlocksSection2::create($request->all());
-            $message = 'Wedding room blocks section 2 created successfully';
+        // Handle multiple images
+        $images = ['', '', ''];
+        
+        for ($i = 0; $i < 3; $i++) {
+            $fileKey = "image_{$i}";
+            $urlKey = "image_url_{$i}";
+            
+            if ($request->hasFile($fileKey)) {
+                $path = $request->file($fileKey)->store('wedding-room-blocks-section2', 'public');
+                $images[$i] = $path;
+            } elseif ($request->has($urlKey) && $request->$urlKey) {
+                $images[$i] = $request->$urlKey;
+            }
         }
-
+        
+        $item->images = json_encode($images);
+        $item->save();
+        
+        // Return with full URLs
+        $returnImages = $images;
+        foreach ($returnImages as &$img) {
+            if ($img && !filter_var($img, FILTER_VALIDATE_URL)) {
+                $img = asset('storage/' . $img);
+            }
+        }
+        $item->images = $returnImages;
+        
         return response()->json([
             'success' => true,
-            'message' => $message,
-            'data' => $section
+            'message' => 'Created successfully',
+            'data' => $item
         ]);
     }
 
-    // Update section 2 (admin)
     public function update(Request $request, $id)
     {
-        $section = WeddingRoomBlocksSection2::find($id);
+        $item = WeddingRoomBlocksSection2::find($id);
         
-        if (!$section) {
+        if (!$item) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding room blocks section 2 not found'
+                'message' => 'Item not found'
             ], 404);
         }
-
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'subtitle' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'image_url' => 'sometimes|required|url'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+        
+        if ($request->has('title')) {
+            $item->title = $request->title;
         }
-
-        $section->update($request->all());
-
+        if ($request->has('subtitle')) {
+            $item->subtitle = $request->subtitle;
+        }
+        if ($request->has('description')) {
+            $item->description = $request->description;
+        }
+        if ($request->has('sort_order')) {
+            $item->sort_order = $request->sort_order;
+        }
+        
+        // Get existing images
+        $existingImages = json_decode($item->images, true) ?? ['', '', ''];
+        $images = $existingImages;
+        
+        // Handle multiple images
+        for ($i = 0; $i < 3; $i++) {
+            $fileKey = "image_{$i}";
+            $urlKey = "image_url_{$i}";
+            
+            if ($request->hasFile($fileKey)) {
+                // Delete old image if exists
+                if ($existingImages[$i] && !filter_var($existingImages[$i], FILTER_VALIDATE_URL)) {
+                    Storage::disk('public')->delete($existingImages[$i]);
+                }
+                $path = $request->file($fileKey)->store('wedding-room-blocks-section2', 'public');
+                $images[$i] = $path;
+            } elseif ($request->has($urlKey)) {
+                $images[$i] = $request->$urlKey;
+            }
+        }
+        
+        $item->images = json_encode($images);
+        $item->save();
+        
+        // Return with full URLs
+        $returnImages = $images;
+        foreach ($returnImages as &$img) {
+            if ($img && !filter_var($img, FILTER_VALIDATE_URL)) {
+                $img = asset('storage/' . $img);
+            }
+        }
+        $item->images = $returnImages;
+        
         return response()->json([
             'success' => true,
-            'message' => 'Wedding room blocks section 2 updated successfully',
-            'data' => $section
+            'message' => 'Updated successfully',
+            'data' => $item
         ]);
     }
-
-    // Delete section 2 (admin)
+    
     public function destroy($id)
     {
-        $section = WeddingRoomBlocksSection2::find($id);
+        $item = WeddingRoomBlocksSection2::find($id);
         
-        if (!$section) {
+        if (!$item) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding room blocks section 2 not found'
+                'message' => 'Item not found'
             ], 404);
         }
-
-        $section->delete();
-
+        
+        // Delete all images
+        $images = json_decode($item->images, true) ?? [];
+        foreach ($images as $image) {
+            if ($image && !filter_var($image, FILTER_VALIDATE_URL)) {
+                Storage::disk('public')->delete($image);
+            }
+        }
+        
+        $item->delete();
+        
         return response()->json([
             'success' => true,
-            'message' => 'Wedding room blocks section 2 deleted successfully'
+            'message' => 'Deleted successfully'
         ]);
     }
-}   
+}

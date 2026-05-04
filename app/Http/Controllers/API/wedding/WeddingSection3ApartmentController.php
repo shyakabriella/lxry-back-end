@@ -22,9 +22,20 @@ class WeddingSection3ApartmentController extends Controller
                 ], 404);
             }
 
+            $data = $section->toArray();
+            
+            // Convert image path to FULL URL using asset() instead of Storage::url()
+            if ($data['image_url'] && !filter_var($data['image_url'], FILTER_VALIDATE_URL)) {
+                // Remove any leading slashes or storage prefix
+                $cleanPath = ltrim($data['image_url'], '/');
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                // Use asset() to generate full URL
+                $data['image_url'] = asset('storage/' . $cleanPath);
+            }
+
             return response()->json([
                 'success' => true,
-                'data' => $section
+                'data' => $data
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -54,7 +65,6 @@ class WeddingSection3ApartmentController extends Controller
 
             $imagePath = null;
             
-            // Handle image upload
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
@@ -71,10 +81,18 @@ class WeddingSection3ApartmentController extends Controller
                 'amenities' => []
             ]);
 
+            // Return full URL
+            $responseData = $section->toArray();
+            if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+                $cleanPath = ltrim($responseData['image_url'], '/');
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                $responseData['image_url'] = asset('storage/' . $cleanPath);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Wedding section 3 created successfully',
-                'data' => $section
+                'data' => $responseData
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -115,13 +133,10 @@ class WeddingSection3ApartmentController extends Controller
             if ($request->has('subtitle')) $section->subtitle = $request->subtitle;
             if ($request->has('description')) $section->description = $request->description;
 
-            // Handle image upload
             if ($request->hasFile('image')) {
-                // Delete old image if exists
                 if ($section->image_url && Storage::disk('public')->exists($section->image_url)) {
                     Storage::disk('public')->delete($section->image_url);
                 }
-                
                 $image = $request->file('image');
                 $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
                 $imagePath = $image->storeAs('wedding-section3', $filename, 'public');
@@ -132,10 +147,18 @@ class WeddingSection3ApartmentController extends Controller
 
             $section->save();
 
+            // Return full URL
+            $responseData = $section->fresh()->toArray();
+            if ($responseData['image_url'] && !filter_var($responseData['image_url'], FILTER_VALIDATE_URL)) {
+                $cleanPath = ltrim($responseData['image_url'], '/');
+                $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+                $responseData['image_url'] = asset('storage/' . $cleanPath);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Wedding section 3 updated successfully',
-                'data' => $section
+                'data' => $responseData
             ]);
         } catch (\Exception $e) {
             return response()->json([

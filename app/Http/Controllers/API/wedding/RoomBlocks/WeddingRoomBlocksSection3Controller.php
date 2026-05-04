@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class WeddingRoomBlocksSection3Controller extends Controller
 {
-    // Get section 3 (public)
+    // Public GET endpoint - no authentication required
     public function getSection()
     {
         $section = WeddingRoomBlocksSection3::first();
@@ -23,18 +23,19 @@ class WeddingRoomBlocksSection3Controller extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $section
+            'data' => [
+                'id' => $section->id,
+                'items' => $section->items ?? []
+            ]
         ]);
     }
 
-    // Create or update section 3 (admin)
+    // Admin POST endpoint - create new essentials
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
-            'image_url' => 'required|url'
+            'items' => 'required|array',
+            'items.*' => 'string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -44,24 +45,24 @@ class WeddingRoomBlocksSection3Controller extends Controller
             ], 422);
         }
 
-        $section = WeddingRoomBlocksSection3::first();
-        
-        if ($section) {
-            $section->update($request->all());
-            $message = 'Wedding room blocks section 3 updated successfully';
-        } else {
-            $section = WeddingRoomBlocksSection3::create($request->all());
-            $message = 'Wedding room blocks section 3 created successfully';
-        }
+        // Filter out empty items
+        $items = array_values(array_filter($request->items, function($item) {
+            return trim($item) !== '';
+        }));
+
+        $section = WeddingRoomBlocksSection3::create(['items' => $items]);
 
         return response()->json([
             'success' => true,
-            'message' => $message,
-            'data' => $section
+            'message' => 'Essentials created successfully',
+            'data' => [
+                'id' => $section->id,
+                'items' => $section->items
+            ]
         ]);
     }
 
-    // Update section 3 (admin)
+    // Admin PUT endpoint - update existing essentials
     public function update(Request $request, $id)
     {
         $section = WeddingRoomBlocksSection3::find($id);
@@ -69,15 +70,13 @@ class WeddingRoomBlocksSection3Controller extends Controller
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding room blocks section 3 not found'
+                'message' => 'Essentials not found'
             ], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'subtitle' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'image_url' => 'sometimes|required|url'
+            'items' => 'required|array',
+            'items.*' => 'string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -87,16 +86,24 @@ class WeddingRoomBlocksSection3Controller extends Controller
             ], 422);
         }
 
-        $section->update($request->all());
+        // Filter out empty items
+        $items = array_values(array_filter($request->items, function($item) {
+            return trim($item) !== '';
+        }));
+
+        $section->update(['items' => $items]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Wedding room blocks section 3 updated successfully',
-            'data' => $section
+            'message' => 'Essentials updated successfully',
+            'data' => [
+                'id' => $section->id,
+                'items' => $section->items
+            ]
         ]);
     }
 
-    // Delete section 3 (admin)
+    // Admin DELETE endpoint - delete essentials
     public function destroy($id)
     {
         $section = WeddingRoomBlocksSection3::find($id);
@@ -104,7 +111,7 @@ class WeddingRoomBlocksSection3Controller extends Controller
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding room blocks section 3 not found'
+                'message' => 'Essentials not found'
             ], 404);
         }
 
@@ -112,7 +119,7 @@ class WeddingRoomBlocksSection3Controller extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Wedding room blocks section 3 deleted successfully'
+            'message' => 'Essentials deleted successfully'
         ]);
     }
 }

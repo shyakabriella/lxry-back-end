@@ -3,116 +3,158 @@
 namespace App\Http\Controllers\API\Wedding\RoomBlocks;
 
 use App\Http\Controllers\Controller;
-use App\Models\Wedding\RoomBlocks\WeddingRoomBlocksSection4;
+use App\Models\Wedding\RoomBlocks\WeddingRoomBlocksSection2;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
-class WeddingRoomBlocksSection4Controller extends Controller
+class WeddingRoomBlocksSection2Controller extends Controller
 {
-    // Get section 4 (public)
     public function getSection()
     {
-        $section = WeddingRoomBlocksSection4::first();
+        $section = WeddingRoomBlocksSection2::first();
         
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding room blocks section 4 not found'
+                'message' => 'No data found'
             ], 404);
+        }
+
+        $cards = $section->cards_data ?? [];
+        
+        // Convert image paths to full URLs
+        foreach ($cards as &$card) {
+            if (isset($card['images'])) {
+                foreach ($card['images'] as &$image) {
+                    if ($image && !filter_var($image, FILTER_VALIDATE_URL) && !str_starts_with($image, 'http')) {
+                        $image = asset('storage/' . ltrim($image, '/'));
+                    }
+                }
+            }
         }
 
         return response()->json([
             'success' => true,
-            'data' => $section
+            'data' => [
+                'id' => $section->id,
+                'cards' => $cards,
+            ]
         ]);
     }
 
-    // Create or update section 4 (admin)
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
-            'image_url' => 'required|url'
-        ]);
-
-        if ($validator->fails()) {
+        try {
+            $cards = $request->cards ?? [];
+            $processedCards = [];
+            
+            foreach ($cards as $index => $card) {
+                $processedCard = [
+                    'title' => $card['title'] ?? '',
+                    'subtitle' => $card['subtitle'] ?? '',
+                    'description' => $card['description'] ?? '',
+                    'images' => []
+                ];
+                
+                // Handle 3 images
+                for ($i = 0; $i < 3; $i++) {
+                    $imagePath = null;
+                    
+                    // Check if there's an uploaded file
+                    if (isset($card["image_{$i}"]) && $card["image_{$i}"]) {
+                        $file = $card["image_{$i}"];
+                        if (is_object($file) && method_exists($file, 'store')) {
+                            $filename = time() . '_' . rand(1000, 9999) . '_' . $i . '.' . $file->getClientOriginalExtension();
+                            $imagePath = $file->storeAs('wedding-room-blocks-section2', $filename, 'public');
+                        } else {
+                            $imagePath = $file;
+                        }
+                    }
+                    // Check if there's an existing image URL
+                    elseif (isset($card['images'][$i]) && $card['images'][$i]) {
+                        $imagePath = $card['images'][$i];
+                        // If it's a full URL, extract the path
+                        if (str_contains($imagePath, '/storage/')) {
+                            $imagePath = substr($imagePath, strpos($imagePath, '/storage/') + 9);
+                        }
+                    }
+                    
+                    $processedCard['images'][] = $imagePath;
+                }
+                
+                $processedCards[] = $processedCard;
+            }
+            
+            $section = WeddingRoomBlocksSection2::first();
+            
+            if ($section) {
+                $section->update(['cards_data' => $processedCards]);
+                $message = 'Section updated successfully';
+            } else {
+                $section = WeddingRoomBlocksSection2::create(['cards_data' => $processedCards]);
+                $message = 'Section created successfully';
+            }
+            
+            // Return processed cards with full URLs
+            $returnCards = $processedCards;
+            foreach ($returnCards as &$card) {
+                foreach ($card['images'] as &$image) {
+                    if ($image && !filter_var($image, FILTER_VALIDATE_URL) && !str_starts_with($image, 'http')) {
+                        $image = asset('storage/' . ltrim($image, '/'));
+                    }
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => [
+                    'id' => $section->id,
+                    'cards' => $returnCards,
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        $section = WeddingRoomBlocksSection4::first();
-        
-        if ($section) {
-            $section->update($request->all());
-            $message = 'Wedding room blocks section 4 updated successfully';
-        } else {
-            $section = WeddingRoomBlocksSection4::create($request->all());
-            $message = 'Wedding room blocks section 4 created successfully';
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $section
-        ]);
     }
 
-    // Update section 4 (admin)
     public function update(Request $request, $id)
     {
-        $section = WeddingRoomBlocksSection4::find($id);
-        
-        if (!$section) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Wedding room blocks section 4 not found'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'subtitle' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'image_url' => 'sometimes|required|url'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $section->update($request->all());
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Wedding room blocks section 4 updated successfully',
-            'data' => $section
-        ]);
+        return $this->store($request);
     }
 
-    // Delete section 4 (admin)
     public function destroy($id)
     {
-        $section = WeddingRoomBlocksSection4::find($id);
+        $section = WeddingRoomBlocksSection2::find($id);
         
         if (!$section) {
             return response()->json([
                 'success' => false,
-                'message' => 'Wedding room blocks section 4 not found'
+                'message' => 'Section not found'
             ], 404);
         }
-
+        
+        // Delete stored images
+        $cards = $section->cards_data ?? [];
+        foreach ($cards as $card) {
+            if (isset($card['images'])) {
+                foreach ($card['images'] as $image) {
+                    if ($image && !filter_var($image, FILTER_VALIDATE_URL) && !str_starts_with($image, 'http')) {
+                        Storage::disk('public')->delete($image);
+                    }
+                }
+            }
+        }
+        
         $section->delete();
-
+        
         return response()->json([
             'success' => true,
-            'message' => 'Wedding room blocks section 4 deleted successfully'
+            'message' => 'Section deleted successfully'
         ]);
     }
 }

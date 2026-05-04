@@ -36,4 +36,10 @@ class WeddingPackagesSection5 extends Model
         'block4_item3',
         'block4_item4'
     ];
+    
+    // Allow null values for title and subtitle
+    protected $attributes = [
+        'title' => null,
+        'subtitle' => null,
+    ];
 }

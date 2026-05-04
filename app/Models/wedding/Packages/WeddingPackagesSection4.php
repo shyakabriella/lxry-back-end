@@ -10,6 +10,7 @@ class WeddingPackagesSection4 extends Model
     
     protected $fillable = [
         'title',
+        'items',
         'benefit1',
         'benefit2',
         'benefit3',
@@ -25,5 +26,9 @@ class WeddingPackagesSection4 extends Model
         'benefit13',
         'benefit14',
         'benefit15'
+    ];
+    
+    protected $casts = [
+        'items' => 'array'
     ];
 }

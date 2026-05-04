@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Wedding\Packages\WeddingPackagesSection2;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class WeddingPackagesSection2Controller extends Controller
 {
-    // Get section 2 (public)
     public function getSection()
     {
         $section = WeddingPackagesSection2::first();
@@ -21,28 +21,37 @@ class WeddingPackagesSection2Controller extends Controller
             ], 404);
         }
 
+        $data = $section->toArray();
+        if ($data['image_url'] && !filter_var($data['image_url'], FILTER_VALIDATE_URL)) {
+            $cleanPath = ltrim($data['image_url'], '/');
+            $cleanPath = preg_replace('/^storage\//', '', $cleanPath);
+            $data['image_url'] = asset('storage/' . $cleanPath);
+        }
+
+        // Convert features from separate fields to array
+        $features = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $featureKey = "feature{$i}";
+            if (!empty($data[$featureKey])) {
+                $features[] = $data[$featureKey];
+            }
+            unset($data[$featureKey]);
+        }
+        $data['items'] = $features;
+
         return response()->json([
             'success' => true,
-            'data' => $section
+            'data' => $data
         ]);
     }
 
-    // Create or update section 2 (admin)
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'image_url' => 'nullable|url',
-            'feature1' => 'nullable|string',
-            'feature2' => 'nullable|string',
-            'feature3' => 'nullable|string',
-            'feature4' => 'nullable|string',
-            'feature5' => 'nullable|string',
-            'feature6' => 'nullable|string',
-            'feature7' => 'nullable|string',
-            'feature8' => 'nullable|string',
-            'feature9' => 'nullable|string',
-            'feature10' => 'nullable|string'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_url' => 'nullable|string',
+            'items' => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
@@ -54,11 +63,30 @@ class WeddingPackagesSection2Controller extends Controller
 
         $section = WeddingPackagesSection2::first();
         
+        $data = ['title' => $request->title];
+        
+        // Handle image
+        if ($request->hasFile('image')) {
+            if ($section && $section->image_url && !filter_var($section->image_url, FILTER_VALIDATE_URL)) {
+                Storage::disk('public')->delete($section->image_url);
+            }
+            $data['image_url'] = $request->file('image')->store('wedding-packages-section2', 'public');
+        } elseif ($request->has('image_url') && $request->image_url) {
+            $data['image_url'] = $request->image_url;
+        }
+        
+        // Handle features as separate fields
+        $items = $request->items ?? [];
+        for ($i = 0; $i < 10; $i++) {
+            $featureKey = "feature" . ($i + 1);
+            $data[$featureKey] = $items[$i] ?? null;
+        }
+        
         if ($section) {
-            $section->update($request->all());
+            $section->update($data);
             $message = 'Wedding packages section 2 updated successfully';
         } else {
-            $section = WeddingPackagesSection2::create($request->all());
+            $section = WeddingPackagesSection2::create($data);
             $message = 'Wedding packages section 2 created successfully';
         }
 
@@ -69,7 +97,6 @@ class WeddingPackagesSection2Controller extends Controller
         ]);
     }
 
-    // Update section 2 (admin)
     public function update(Request $request, $id)
     {
         $section = WeddingPackagesSection2::find($id);
@@ -90,7 +117,6 @@ class WeddingPackagesSection2Controller extends Controller
         ]);
     }
 
-    // Delete section 2 (admin)
     public function destroy($id)
     {
         $section = WeddingPackagesSection2::find($id);
@@ -100,6 +126,10 @@ class WeddingPackagesSection2Controller extends Controller
                 'success' => false,
                 'message' => 'Wedding packages section 2 not found'
             ], 404);
+        }
+
+        if ($section->image_url && !filter_var($section->image_url, FILTER_VALIDATE_URL)) {
+            Storage::disk('public')->delete($section->image_url);
         }
 
         $section->delete();
