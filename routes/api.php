@@ -144,10 +144,23 @@ Route::get('/wedding/section6/gallery', [WeddingSection6GalleryController::class
 // Wedding Services Public View Only
 Route::get('/wedding/services', [WeddingServiceController::class, 'getServices']);
 
-// Restaurant Public
+/*
+|--------------------------------------------------------------------------
+| Restaurant Public Routes
+|--------------------------------------------------------------------------
+*/
+
+// Restaurant Menu Categories Public
+Route::get('/restaurant-menu-categories', [RestaurantMenuCategoryController::class, 'index']);
+Route::get('/restaurant-menu-categories/active', [RestaurantMenuCategoryController::class, 'active']);
+Route::get('/restaurant-menu-categories/{id}', [RestaurantMenuCategoryController::class, 'show']);
+
+// Restaurant Menu Items Public
 Route::get('/restaurant-menu-items', [RestaurantMenuItemController::class, 'index']);
 Route::get('/restaurant-menu-items/active', [RestaurantMenuItemController::class, 'active']);
 Route::get('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'show']);
+
+// Restaurant Bookings Public
 Route::post('/restaurant-bookings', [RestaurantBookingController::class, 'store']);
 
 /*
@@ -269,6 +282,13 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
+    // Restaurant Menu Categories Management
+    Route::post('/restaurant-menu-categories', [RestaurantMenuCategoryController::class, 'store']);
+    Route::put('/restaurant-menu-categories/{id}', [RestaurantMenuCategoryController::class, 'update']);
+    Route::post('/restaurant-menu-categories/{id}', [RestaurantMenuCategoryController::class, 'update']);
+    Route::delete('/restaurant-menu-categories/{id}', [RestaurantMenuCategoryController::class, 'destroy']);
+
+    // Restaurant Menu Items Management
     Route::post('/restaurant-menu-items', [RestaurantMenuItemController::class, 'store']);
     Route::put('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'update']);
     Route::post('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'update']);
