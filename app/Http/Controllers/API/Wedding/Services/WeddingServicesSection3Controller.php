@@ -80,22 +80,40 @@ class WeddingServicesSection3Controller extends Controller
                 'card2_subtitle' => $request->card2_subtitle,
             ];
             
+            // Handle Card 1 Image - Store ONLY RELATIVE PATH
             if ($request->hasFile('card1_image')) {
+                // Delete old image if exists (only if it's a relative path)
                 if ($section && $section->card1_image && !filter_var($section->card1_image, FILTER_VALIDATE_URL)) {
                     Storage::disk('public')->delete($section->card1_image);
                 }
                 $data['card1_image'] = $request->file('card1_image')->store('wedding-services-section3', 'public');
             } elseif ($request->has('card1_image_url') && $request->card1_image_url) {
-                $data['card1_image'] = $request->card1_image_url;
+                // Extract relative path from full URL if needed
+                $url = $request->card1_image_url;
+                if (str_contains($url, '/storage/')) {
+                    $path = substr($url, strpos($url, '/storage/') + 9);
+                    $data['card1_image'] = $path;
+                } else {
+                    $data['card1_image'] = $url;
+                }
             }
             
+            // Handle Card 2 Image - Store ONLY RELATIVE PATH
             if ($request->hasFile('card2_image')) {
+                // Delete old image if exists (only if it's a relative path)
                 if ($section && $section->card2_image && !filter_var($section->card2_image, FILTER_VALIDATE_URL)) {
                     Storage::disk('public')->delete($section->card2_image);
                 }
                 $data['card2_image'] = $request->file('card2_image')->store('wedding-services-section3', 'public');
             } elseif ($request->has('card2_image_url') && $request->card2_image_url) {
-                $data['card2_image'] = $request->card2_image_url;
+                // Extract relative path from full URL if needed
+                $url = $request->card2_image_url;
+                if (str_contains($url, '/storage/')) {
+                    $path = substr($url, strpos($url, '/storage/') + 9);
+                    $data['card2_image'] = $path;
+                } else {
+                    $data['card2_image'] = $url;
+                }
             }
             
             if ($section) {
@@ -148,31 +166,41 @@ class WeddingServicesSection3Controller extends Controller
             if ($request->has('card2_subtitle')) $section->card2_subtitle = $request->card2_subtitle;
             if ($request->has('card2_description')) $section->card2_description = $request->card2_description;
             
-            // Handle Card 1 Image - ONLY if image is provided
+            // Handle Card 1 Image - Store ONLY RELATIVE PATH
             if ($request->hasFile('card1_image')) {
+                // Delete old image if exists (only if it's a relative path)
                 if ($section->card1_image && !filter_var($section->card1_image, FILTER_VALIDATE_URL)) {
                     Storage::disk('public')->delete($section->card1_image);
                 }
                 $section->card1_image = $request->file('card1_image')->store('wedding-services-section3', 'public');
             } elseif ($request->has('card1_image_url') && $request->card1_image_url) {
-                if ($section->card1_image && !filter_var($section->card1_image, FILTER_VALIDATE_URL)) {
-                    Storage::disk('public')->delete($section->card1_image);
+                // Extract relative path from full URL if needed
+                $url = $request->card1_image_url;
+                if (str_contains($url, '/storage/')) {
+                    $path = substr($url, strpos($url, '/storage/') + 9);
+                    $section->card1_image = $path;
+                } else {
+                    $section->card1_image = $url;
                 }
-                $section->card1_image = $request->card1_image_url;
             }
             // If neither file nor URL is provided, card1_image REMAINS UNCHANGED
             
-            // Handle Card 2 Image - ONLY if image is provided
+            // Handle Card 2 Image - Store ONLY RELATIVE PATH
             if ($request->hasFile('card2_image')) {
+                // Delete old image if exists (only if it's a relative path)
                 if ($section->card2_image && !filter_var($section->card2_image, FILTER_VALIDATE_URL)) {
                     Storage::disk('public')->delete($section->card2_image);
                 }
                 $section->card2_image = $request->file('card2_image')->store('wedding-services-section3', 'public');
             } elseif ($request->has('card2_image_url') && $request->card2_image_url) {
-                if ($section->card2_image && !filter_var($section->card2_image, FILTER_VALIDATE_URL)) {
-                    Storage::disk('public')->delete($section->card2_image);
+                // Extract relative path from full URL if needed
+                $url = $request->card2_image_url;
+                if (str_contains($url, '/storage/')) {
+                    $path = substr($url, strpos($url, '/storage/') + 9);
+                    $section->card2_image = $path;
+                } else {
+                    $section->card2_image = $url;
                 }
-                $section->card2_image = $request->card2_image_url;
             }
             // If neither file nor URL is provided, card2_image REMAINS UNCHANGED
             

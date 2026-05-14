@@ -11,6 +11,7 @@ class WeddingPackagesSection3 extends Model
     protected $fillable = [
         'title',
         'image_url',
+        'items',  // Add this for JSON storage
         'feature1',
         'feature2',
         'feature3',
@@ -21,5 +22,9 @@ class WeddingPackagesSection3 extends Model
         'feature8',
         'feature9',
         'feature10'
+    ];
+    
+    protected $casts = [
+        'items' => 'array'  // Cast items to array automatically
     ];
 }

@@ -342,9 +342,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/wedding/section1/venue/{id}', [WeddingSection1VenueController::class, 'update']);
     Route::delete('/admin/wedding/section1/venue/{id}', [WeddingSection1VenueController::class, 'destroy']);
 
+    // Existing routes (keep these)
     Route::post('/admin/wedding/section2/easy-plan', [WeddingSection2EasyPlanController::class, 'store']);
     Route::put('/admin/wedding/section2/easy-plan/{id}', [WeddingSection2EasyPlanController::class, 'update']);
     Route::delete('/admin/wedding/section2/easy-plan/{id}', [WeddingSection2EasyPlanController::class, 'destroy']);
+
+    // NEW: Add these routes to match your frontend (using /slides endpoint)
+    Route::post('/admin/wedding/section2/slides', [WeddingSection2EasyPlanController::class, 'store']);
+    Route::post('/admin/wedding/section2/slides/{id}', [WeddingSection2EasyPlanController::class, 'update']);
+    Route::delete('/admin/wedding/section2/slides/{id}', [WeddingSection2EasyPlanController::class, 'destroy']);
+    Route::get('/admin/wedding/section2/slides', [WeddingSection2EasyPlanController::class, 'index']);
 
     Route::post('/admin/wedding/section3/apartment', [WeddingSection3ApartmentController::class, 'store']);
     Route::put('/admin/wedding/section3/apartment/{id}', [WeddingSection3ApartmentController::class, 'update']);
@@ -489,4 +496,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/wedding-gallery/section2', [WeddingGallerySection2Controller::class, 'store']);
     Route::put('/admin/wedding-gallery/section2/{id}', [WeddingGallerySection2Controller::class, 'update']);
     Route::delete('/admin/wedding-gallery/section2/{id}', [WeddingGallerySection2Controller::class, 'destroy']);
+
+
+
+
 });
