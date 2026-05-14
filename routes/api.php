@@ -190,10 +190,23 @@ Route::get('/wedding-gallery/hero', [WeddingGalleryHeroController::class, 'getHe
 Route::get('/wedding-gallery/section1', [WeddingGallerySection1Controller::class, 'getSection']);
 Route::get('/wedding-gallery/section2', [WeddingGallerySection2Controller::class, 'getSection']);
 
-// Restaurant Public
+/*
+|--------------------------------------------------------------------------
+| Restaurant Public Routes
+|--------------------------------------------------------------------------
+*/
+
+// Restaurant Menu Categories Public
+Route::get('/restaurant-menu-categories', [RestaurantMenuCategoryController::class, 'index']);
+Route::get('/restaurant-menu-categories/active', [RestaurantMenuCategoryController::class, 'active']);
+Route::get('/restaurant-menu-categories/{id}', [RestaurantMenuCategoryController::class, 'show']);
+
+// Restaurant Menu Items Public
 Route::get('/restaurant-menu-items', [RestaurantMenuItemController::class, 'index']);
 Route::get('/restaurant-menu-items/active', [RestaurantMenuItemController::class, 'active']);
 Route::get('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'show']);
+
+// Restaurant Bookings Public
 Route::post('/restaurant-bookings', [RestaurantBookingController::class, 'store']);
 
 /*
@@ -309,6 +322,7 @@ Route::middleware('auth:sanctum')->group(function () {
     | Restaurant Menu Management
     |--------------------------------------------------------------------------
     */
+
     Route::post('/restaurant-menu-items', [RestaurantMenuItemController::class, 'store']);
     Route::put('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'update']);
     Route::post('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'update']);

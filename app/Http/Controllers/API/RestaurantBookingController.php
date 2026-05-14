@@ -5,8 +5,12 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\RestaurantBooking;
 use App\Models\RestaurantMenuItem;
+use App\Notifications\RestaurantBookingConfirmedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class RestaurantBookingController extends Controller
 {
@@ -46,7 +50,10 @@ class RestaurantBookingController extends Controller
         $validated = $request->validate([
             'customer_name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
+
+            // Email is required because customer must receive confirmation email.
+            'email' => ['required', 'email', 'max:255'],
+
             'booking_type' => ['required', 'in:table,buy_now'],
             'payment_method' => ['required', 'in:counter,room,card'],
 
@@ -64,6 +71,14 @@ class RestaurantBookingController extends Controller
             'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
         ]);
 
+        if ($validated['booking_type'] === 'table') {
+            $request->validate([
+                'booking_date' => ['required', 'date'],
+                'booking_time' => ['required', 'date_format:H:i'],
+                'party_size' => ['required', 'integer', 'min:1'],
+            ]);
+        }
+
         $booking = DB::transaction(function () use ($validated) {
             $subtotal = 0;
 
@@ -71,7 +86,7 @@ class RestaurantBookingController extends Controller
                 'booking_code' => 'RBK-' . now()->format('YmdHis') . rand(100, 999),
                 'customer_name' => $validated['customer_name'],
                 'phone' => $validated['phone'],
-                'email' => $validated['email'] ?? null,
+                'email' => $validated['email'],
                 'booking_type' => $validated['booking_type'],
                 'payment_method' => $validated['payment_method'],
                 'booking_date' => $validated['booking_date'] ?? null,
@@ -92,8 +107,14 @@ class RestaurantBookingController extends Controller
                     $menuItem = RestaurantMenuItem::find($item['restaurant_menu_item_id']);
                 }
 
-                $unitPrice = $menuItem ? (float) $menuItem->price : (float) ($item['unit_price'] ?? 0);
-                $itemName = $menuItem ? $menuItem->name : ($item['item_name'] ?? 'Custom Item');
+                $unitPrice = $menuItem
+                    ? (float) $menuItem->price
+                    : (float) ($item['unit_price'] ?? 0);
+
+                $itemName = $menuItem
+                    ? $menuItem->name
+                    : ($item['item_name'] ?? 'Custom Item');
+
                 $quantity = (int) $item['quantity'];
                 $lineTotal = $unitPrice * $quantity;
 
@@ -113,12 +134,32 @@ class RestaurantBookingController extends Controller
                 'total' => $subtotal,
             ]);
 
-            return $booking->load('items');
+            return $booking->fresh()->load('items');
         });
+
+        $emailSent = false;
+
+        try {
+            Notification::route('mail', [
+                $booking->email => $booking->customer_name,
+            ])->notify(new RestaurantBookingConfirmedNotification($booking));
+
+            $emailSent = true;
+        } catch (Throwable $e) {
+            Log::error('Restaurant booking confirmation email failed', [
+                'booking_id' => $booking->id,
+                'booking_code' => $booking->booking_code,
+                'customer_email' => $booking->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'status' => true,
-            'message' => 'Restaurant booking created successfully.',
+            'message' => $emailSent
+                ? 'Restaurant booking created successfully. Confirmation email has been sent.'
+                : 'Restaurant booking created successfully, but confirmation email could not be sent.',
+            'email_sent' => $emailSent,
             'data' => $booking,
         ], 201);
     }
