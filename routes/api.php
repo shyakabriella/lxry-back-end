@@ -190,11 +190,9 @@ Route::get('/wedding-gallery/hero', [WeddingGalleryHeroController::class, 'getHe
 Route::get('/wedding-gallery/section1', [WeddingGallerySection1Controller::class, 'getSection']);
 Route::get('/wedding-gallery/section2', [WeddingGallerySection2Controller::class, 'getSection']);
 
-/*
-|--------------------------------------------------------------------------
-| Restaurant Public Routes
-|--------------------------------------------------------------------------
-*/
+// =========================================================================
+// RESTAURANT - PUBLIC ROUTES
+// =========================================================================
 
 // Restaurant Menu Categories Public
 Route::get('/restaurant-menu-categories', [RestaurantMenuCategoryController::class, 'index']);
@@ -319,10 +317,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Restaurant Menu Management
+    | RESTAURANT MENU CATEGORIES MANAGEMENT (ADMIN)
     |--------------------------------------------------------------------------
     */
+    Route::post('/restaurant-menu-categories', [RestaurantMenuCategoryController::class, 'store']);
+    Route::put('/restaurant-menu-categories/{id}', [RestaurantMenuCategoryController::class, 'update']);
+    Route::delete('/restaurant-menu-categories/{id}', [RestaurantMenuCategoryController::class, 'destroy']);
 
+    /*
+    |--------------------------------------------------------------------------
+    | RESTAURANT MENU ITEMS MANAGEMENT (ADMIN)
+    |--------------------------------------------------------------------------
+    */
     Route::post('/restaurant-menu-items', [RestaurantMenuItemController::class, 'store']);
     Route::put('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'update']);
     Route::post('/restaurant-menu-items/{id}', [RestaurantMenuItemController::class, 'update']);
@@ -330,7 +336,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Restaurant Booking Management
+    | RESTAURANT BOOKING MANAGEMENT (ADMIN)
     |--------------------------------------------------------------------------
     */
     Route::get('/restaurant-bookings', [RestaurantBookingController::class, 'index']);
@@ -356,12 +362,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/wedding/section1/venue/{id}', [WeddingSection1VenueController::class, 'update']);
     Route::delete('/admin/wedding/section1/venue/{id}', [WeddingSection1VenueController::class, 'destroy']);
 
-    // Existing routes (keep these)
     Route::post('/admin/wedding/section2/easy-plan', [WeddingSection2EasyPlanController::class, 'store']);
     Route::put('/admin/wedding/section2/easy-plan/{id}', [WeddingSection2EasyPlanController::class, 'update']);
     Route::delete('/admin/wedding/section2/easy-plan/{id}', [WeddingSection2EasyPlanController::class, 'destroy']);
 
-    // NEW: Add these routes to match your frontend (using /slides endpoint)
     Route::post('/admin/wedding/section2/slides', [WeddingSection2EasyPlanController::class, 'store']);
     Route::post('/admin/wedding/section2/slides/{id}', [WeddingSection2EasyPlanController::class, 'update']);
     Route::delete('/admin/wedding/section2/slides/{id}', [WeddingSection2EasyPlanController::class, 'destroy']);
@@ -510,8 +514,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/wedding-gallery/section2', [WeddingGallerySection2Controller::class, 'store']);
     Route::put('/admin/wedding-gallery/section2/{id}', [WeddingGallerySection2Controller::class, 'update']);
     Route::delete('/admin/wedding-gallery/section2/{id}', [WeddingGallerySection2Controller::class, 'destroy']);
-
-
-
-
 });
